@@ -1,0 +1,3617 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>300 câu TN cơ bản về CNTT và TT</title>
+<style>
+ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 24px; line-height: 1.6; background-color: #f7f7f7; }
+ h1 { margin-top: 0; color: #1a1a1a; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+
+ /* Khung nhập thông tin HS */
+ #student-info-section {
+    background-color: #e8f5e9; /* Màu xanh lá nhạt */
+    border: 1px solid #c8e6c9;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+ }
+ .input-group { margin-bottom: 10px; display: flex; align-items: center; }
+ .input-group label { font-weight: 600; margin-right: 15px; color: #388e3c; min-width: 100px; }
+ .input-group input { 
+    flex-grow: 1; 
+    padding: 10px; 
+    border: 1px solid #a5d6a7; 
+    border-radius: 8px; 
+    font-size: 16px; 
+    font-weight: 500;
+ }
+ /* Định dạng cho ô đã bị khóa */
+ .input-group input:disabled {
+    background-color: #f0fff0; /* Nền trắng xanh nhạt hơn */
+    color: #4a6a5a;
+    cursor: not-allowed;
+    border-color: #d1e7dd;
+    box-shadow: 0 0 5px rgba(56, 142, 60, 0.2);
+ }
+ 
+ /* Thống kê điểm (Sticky) */
+ #score-board {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #ffffff;
+    border: 2px solid #3498db;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+ }
+ .stat-item { text-align: center; padding: 0 10px; flex: 1; min-width: 120px; }
+ .stat-item h2 { margin: 0; font-size: 14px; color: #555; font-weight: 500;}
+ .stat-value { font-size: 24px; font-weight: 700; color: #2c3e50; }
+ #percentage-value { color: #27ae60; }
+ #wrong-answers-value { color: #e74c3c; } 
+ #reset-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    margin-left: 10px;
+ }
+ #reset-button:hover { background-color: #c0392b; }
+
+ /* Quiz Styling */
+ .q { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; margin: 15px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+ .q h3 { margin: 0 0 12px; font-size: 16px; color: #333; }
+ .opt { display: block; margin: 8px 0; cursor: pointer; padding: 8px 10px; border-radius: 6px; transition: background-color 0.2s; }
+ .opt:hover { background-color: #f0f0f0; }
+ input[type="radio"] { margin-right: 10px; }
+ .ans { margin-top: 12px; font-weight: 600; padding: 10px 15px; border-radius: 6px; display: none; line-height: 1.4; }
+ .correct { color: #004d1a; background-color: #e6ffe6; border: 1px solid #004d1a; }
+ .wrong { color: #800000; background-color: #ffcccc; border: 1px solid #800000; }
+ .small { color: #555; font-size: 12px; display: block; margin-top: 4px; }
+ .pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight: bold; margin-right: 5px; }
+</style>
+</head>
+<body>
+<h1>300 300 câu TN cơ bản về CNTT và TT</h1>
+<p class="small">Đáp án được **hoán đổi ngẫu nhiên** mỗi lần tải trang.</p>
+
+<div id="student-info-section">
+    <div class="input-group">
+        <label for="student-name">HỌ VÀ TÊN:</label>
+        <input type="text" id="student-name" placeholder="Nhập Họ và Tên của bạn" onblur="lockInput(this)">
+    </div>
+    <div class="input-group">
+        <label for="student-id">MÃ SỐ HS:</label>
+        <input type="text" id="student-id" placeholder="Nhập Mã số học sinh" onblur="lockInput(this)">
+    </div>
+</div>
+
+<div id="score-board">
+    <div class="stat-item">
+        <h2>Tổng số câu</h2>
+        <span class="stat-value" id="total-questions">300</span>
+    </div>
+    <div class="stat-item">
+        <h2>Đã trả lời</h2>
+        <span class="stat-value" id="answered-questions">0</span>
+    </div>
+    <div class="stat-item">
+        <h2>Số câu đúng</h2>
+        <span class="stat-value" id="correct-answers" style="color: #27ae60;">0</span>
+    </div>
+    <div class="stat-item">
+        <h2>Số câu sai</h2>
+        <span class="stat-value" id="wrong-answers-value">0</span>
+    </div>
+    <div class="stat-item">
+        <h2>Độ chính xác</h2>
+        <span class="stat-value" id="percentage-value">0%</span>
+    </div>
+    <button id="reset-button" onclick="resetQuiz()">LÀM LẠI</button>
+</div>
+
+<div id="quiz"></div>
+<script>
+// Dữ liệu 300 câu trắc nghiệm (Giữ nguyên)
+const quizData = [
+  {
+    "q": "ICT là viết tắt của cụm từ nào?",
+    "options": [
+      "Information and Communications Technology.",
+      "International Computer Technology.",
+      "Internet and Cloud Technology.",
+      "Integrated Computing Tools."
+    ],
+    "answer": 0,
+    "hint": "ICT gồm công nghệ thông tin và công nghệ truyền thông."
+  },
+  {
+    "q": "Phần cứng (hardware) là gì?",
+    "options": [
+      "Thành phần vật lý có thể nhìn, chạm được của máy tính.",
+      "Các chương trình chạy trên máy tính.",
+      "Dữ liệu người dùng.",
+      "Tài khoản đăng nhập hệ điều hành."
+    ],
+    "answer": 0,
+    "hint": "Phần cứng gồm CPU, RAM, ổ cứng, thiết bị ngoại vi…"
+  },
+  {
+    "q": "Bộ xử lý trung tâm CPU có vai trò chính nào sau đây?",
+    "options": [
+      "Thực hiện lệnh và điều khiển các thành phần khác.",
+      "Lưu trữ lâu dài các tệp tin.",
+      "Cung cấp điện cho máy tính.",
+      "Hiển thị hình ảnh lên màn hình."
+    ],
+    "answer": 0,
+    "hint": "CPU là 'bộ não' của máy tính."
+  },
+  {
+    "q": "RAM khác ROM ở điểm nào?",
+    "options": [
+      "RAM lưu tạm dữ liệu và mất khi tắt máy; ROM chứa chương trình khởi động, không mất khi tắt.",
+      "RAM chỉ đọc; ROM đọc/ghi liên tục.",
+      "RAM nằm trên ổ cứng; ROM là bộ nhớ ngoài.",
+      "RAM dùng cho lưu trữ lâu dài; ROM dùng cho tệp tạm."
+    ],
+    "answer": 0,
+    "hint": "RAM là bộ nhớ truy cập ngẫu nhiên; ROM chỉ đọc."
+  },
+  {
+    "q": "Thiết bị nào sau đây là bộ nhớ lưu trữ rời dùng giao tiếp USB?",
+    "options": [
+      "USB flash drive.",
+      "RAM.",
+      "CPU.",
+      "Bộ nguồn."
+    ],
+    "answer": 0,
+    "hint": "USB sử dụng bộ nhớ flash, dung lượng lớn, kích thước nhỏ."
+  },
+  {
+    "q": "Ổ đĩa nào dùng tia laser để đọc/ghi dữ liệu?",
+    "options": [
+      "CD/DVD.",
+      "Ổ cứng HDD.",
+      "USB.",
+      "Thẻ nhớ."
+    ],
+    "answer": 0,
+    "hint": "CD/DVD là đĩa quang."
+  },
+  {
+    "q": "Chọn phát biểu đúng về hiệu năng:",
+    "options": [
+      "RAM nhiều giúp CPU ít phải chờ, xử lý nhanh hơn.",
+      "Ổ cứng quyết định toàn bộ tốc độ tính toán.",
+      "ROM càng lớn thì phần mềm chạy càng nhanh.",
+      "Bỏ CPU, chỉ cần RAM lớn là đủ."
+    ],
+    "answer": 0,
+    "hint": "RAM thu thập dữ liệu đang xử lý để CPU truy cập nhanh."
+  },
+  {
+    "q": "Thiết bị nào KHÔNG phải là thiết bị vào?",
+    "options": [
+      "Màn hình.",
+      "Bàn phím.",
+      "Chuột.",
+      "Máy quét (scanner)."
+    ],
+    "answer": 0,
+    "hint": "Màn hình là thiết bị ra."
+  },
+  {
+    "q": "Cổng nào truyền âm thanh/hình ảnh độ phân giải cao giữa máy tính và màn hình/TV?",
+    "options": [
+      "HDMI.",
+      "USB.",
+      "Cổng mạng RJ-45.",
+      "FireWire."
+    ],
+    "answer": 0,
+    "hint": "HDMI dành cho đa phương tiện độ phân giải cao."
+  },
+  {
+    "q": "Thiết bị nào là thiết bị kết hợp vừa là vào vừa là ra?",
+    "options": [
+      "Màn hình cảm ứng.",
+      "Chuột quang.",
+      "Loa ngoài.",
+      "Máy in kim."
+    ],
+    "answer": 0,
+    "hint": "Màn hình cảm ứng nhận chạm (vào) và hiển thị (ra)."
+  },
+  {
+    "q": "Thiết bị nào thường dùng để số hóa tài liệu giấy?",
+    "options": [
+      "Scanner.",
+      "Webcam.",
+      "Loa.",
+      "Chuột."
+    ],
+    "answer": 0,
+    "hint": "Máy quét chuyển giấy thành dữ liệu số."
+  },
+  {
+    "q": "Cổng mạng dùng để làm gì?",
+    "options": [
+      "Kết nối máy tính với mạng LAN/Internet qua dây.",
+      "Kết nối loa.",
+      "Kết nối màn hình.",
+      "Kết nối bàn phím PS/2."
+    ],
+    "answer": 0,
+    "hint": "Cổng RJ‑45 cho Ethernet."
+  },
+  {
+    "q": "Ổ cứng rời khác gì ổ cứng gắn trong?",
+    "options": [
+      "Kết nối ngoài qua USB nhưng cùng chức năng lưu trữ.",
+      "Không lưu trữ được dữ liệu.",
+      "Chỉ dùng cho điện thoại.",
+      "Không thể cắm vào PC."
+    ],
+    "answer": 0,
+    "hint": "Ổ cứng rời di động, cắm USB."
+  },
+  {
+    "q": "Thẻ nhớ thường dùng cho thiết bị nào?",
+    "options": [
+      "Máy ảnh, điện thoại.",
+      "CPU.",
+      "Màn hình.",
+      "Nguồn ATX."
+    ],
+    "answer": 0,
+    "hint": "Thẻ nhớ là bộ nhớ mở rộng cho thiết bị cầm tay."
+  },
+  {
+    "q": "Thiết bị nào phát âm thanh ra môi trường?",
+    "options": [
+      "Loa.",
+      "Micro.",
+      "Chuột.",
+      "Bàn phím."
+    ],
+    "answer": 0,
+    "hint": "Loa là thiết bị ra âm thanh."
+  },
+  {
+    "q": "Thiết bị nào ghi nhận âm thanh đưa vào máy tính?",
+    "options": [
+      "Micro.",
+      "Loa.",
+      "Màn hình.",
+      "Máy in."
+    ],
+    "answer": 0,
+    "hint": "Micro là thiết bị vào âm thanh."
+  },
+  {
+    "q": "Docking Station có mục đích chính gì?",
+    "options": [
+      "Mở rộng cổng kết nối cho laptop.",
+      "Tăng RAM.",
+      "Tăng dung lượng ROM.",
+      "Thay CPU."
+    ],
+    "answer": 0,
+    "hint": "Docking giúp laptop như PC bàn."
+  },
+  {
+    "q": "FireWire thường dùng để?",
+    "options": [
+      "Kết nối thiết bị thu video (chuẩn Apple).",
+      "Kết nối mạng LAN.",
+      "Sạc pin.",
+      "Xuất hình sang máy in."
+    ],
+    "answer": 0,
+    "hint": "IEEE 1394 (FireWire) dùng cho video."
+  },
+  {
+    "q": "All-in-one là loại máy tính như thế nào?",
+    "options": [
+      "Tích hợp thân máy vào màn hình.",
+      "Không cần màn hình.",
+      "Chỉ dùng pin.",
+      "Không có ổ cứng."
+    ],
+    "answer": 0,
+    "hint": "AIO gọn gàng, tích hợp."
+  },
+  {
+    "q": "Laptop khác Desktop ở điểm nào sau đây?",
+    "options": [
+      "Di động, tích hợp màn hình/bàn phím/chuột, dùng pin.",
+      "Cấu hình luôn mạnh hơn.",
+      "Không cài được hệ điều hành.",
+      "Không kết nối Internet được."
+    ],
+    "answer": 0,
+    "hint": "Laptop tối ưu năng lượng, di động."
+  },
+  {
+    "q": "Hệ điều hành (OS) là gì?",
+    "options": [
+      "Phần mềm hệ thống quản lý phần cứng, tài nguyên và giao diện.",
+      "Thiết bị ngoại vi.",
+      "Ứng dụng văn phòng.",
+      "Trình duyệt web."
+    ],
+    "answer": 0,
+    "hint": "OS điều phối và cung cấp giao diện làm việc."
+  },
+  {
+    "q": "Ví dụ hệ điều hành máy tính cá nhân:",
+    "options": [
+      "Windows, macOS, Linux.",
+      "Android, iOS.",
+      "Photoshop, AutoCAD.",
+      "Chrome, Edge."
+    ],
+    "answer": 0,
+    "hint": "Windows/macOS/Linux là OS cho PC."
+  },
+  {
+    "q": "Ví dụ hệ điều hành di động:",
+    "options": [
+      "Android, iOS.",
+      "Windows, Linux.",
+      "Chrome, Edge.",
+      "Word, Excel."
+    ],
+    "answer": 0,
+    "hint": "Hệ điều hành cho smartphone."
+  },
+  {
+    "q": "Gói ứng dụng văn phòng gồm:",
+    "options": [
+      "Xử lý văn bản, bảng tính, trình chiếu.",
+      "Phần cứng máy tính.",
+      "Trò chơi 3D.",
+      "Trình điều khiển (driver)."
+    ],
+    "answer": 0,
+    "hint": "Ví dụ: Microsoft Office."
+  },
+  {
+    "q": "EULA là gì?",
+    "options": [
+      "Thoả thuận cấp phép người dùng cuối.",
+      "Trình duyệt web.",
+      "Tập tin đa phương tiện.",
+      "Mạng xã hội."
+    ],
+    "answer": 0,
+    "hint": "Ràng buộc pháp lý khi dùng phần mềm."
+  },
+  {
+    "q": "Phần mềm trả phí (proprietary) cho phép:",
+    "options": [
+      "Sử dụng theo điều khoản, không tự do sửa/ phát hành.",
+      "Tự do sửa và phát hành.",
+      "Sao chép vô hạn không điều kiện.",
+      "Không cần giấy phép."
+    ],
+    "answer": 0,
+    "hint": "Bị giới hạn bởi chủ sở hữu."
+  },
+  {
+    "q": "Mã nguồn mở (open source) nghĩa là:",
+    "options": [
+      "Được phép nghiên cứu/sửa đổi theo giấy phép mở.",
+      "Hoàn toàn không có bản quyền.",
+      "Luôn miễn phí bản quyền âm nhạc.",
+      "Chỉ dành cho Windows."
+    ],
+    "answer": 0,
+    "hint": "GPL, MIT… cho phép sửa/ phân phối theo điều kiện."
+  },
+  {
+    "q": "Shareware là:",
+    "options": [
+      "Phần mềm cho dùng thử rồi trả phí.",
+      "Phần mềm hệ thống.",
+      "Thiết bị phần cứng.",
+      "Trình điều khiển thiết bị."
+    ],
+    "answer": 0,
+    "hint": "Dùng thử 30–60 ngày…"
+  },
+  {
+    "q": "Freeware là:",
+    "options": [
+      "Dùng miễn phí, có thể sao chép phát hành theo điều khoản nhà cung cấp.",
+      "Không có bản quyền.",
+      "Bắt buộc trả phí hàng tháng.",
+      "Chỉ dùng offline."
+    ],
+    "answer": 0,
+    "hint": "Freeware miễn phí sử dụng."
+  },
+  {
+    "q": "Adware có đặc điểm:",
+    "options": [
+      "Miễn phí nhưng kèm quảng cáo; có thể thu thập dữ liệu.",
+      "Chỉ chạy trên Linux.",
+      "Không cần Internet.",
+      "Chỉ là thiết bị phần cứng."
+    ],
+    "answer": 0,
+    "hint": "Quảng cáo là nguồn doanh thu."
+  },
+  {
+    "q": "Để đăng nhập Windows 10, cần thao tác gì?",
+    "options": [
+      "Nhập đúng tài khoản và mật khẩu tại màn hình đăng nhập.",
+      "Cắm USB vào cổng trước.",
+      "Nhấn Ctrl+Alt+Del hai lần.",
+      "Tắt nguồn rồi bật lại."
+    ],
+    "answer": 0,
+    "hint": "Đảm bảo mật khẩu đủ mạnh."
+  },
+  {
+    "q": "Sau khi đăng nhập, khu vực làm việc chính gọi là:",
+    "options": [
+      "Desktop.",
+      "Control Panel.",
+      "Recycle Bin.",
+      "BIOS."
+    ],
+    "answer": 0,
+    "hint": "Desktop là không gian thao tác."
+  },
+  {
+    "q": "Start Menu dùng để:",
+    "options": [
+      "Truy cập ứng dụng, cài đặt, tắt máy…",
+      "Chỉ hiển thị ảnh nền.",
+      "Điều chỉnh độ sáng màn hình.",
+      "Thay thế ổ cứng."
+    ],
+    "answer": 0,
+    "hint": "Nút Windows ở góc trái Taskbar."
+  },
+  {
+    "q": "Taskbar hiển thị:",
+    "options": [
+      "Biểu tượng ứng dụng đang mở và ghim; các khu vực hệ thống.",
+      "Chỉ ngày giờ.",
+      "Chỉ cài đặt âm thanh.",
+      "Chỉ Wi‑Fi."
+    ],
+    "answer": 0,
+    "hint": "Thanh dưới cùng mặc định."
+  },
+  {
+    "q": "Biểu tượng Recycle Bin dùng để:",
+    "options": [
+      "Chứa tạm tệp đã xoá, có thể khôi phục.",
+      "Cài đặt âm thanh.",
+      "Tạo phím tắt.",
+      "Gỡ chương trình."
+    ],
+    "answer": 0,
+    "hint": "Xoá vĩnh viễn khi empty bin."
+  },
+  {
+    "q": "Biểu tượng có mũi tên nhỏ ở góc nghĩa là:",
+    "options": [
+      "Lối tắt (shortcut).",
+      "Tệp nén.",
+      "Tệp hệ thống.",
+      "Tệp ẩn."
+    ],
+    "answer": 0,
+    "hint": "Shortcut là đường dẫn đến tệp gốc."
+  },
+  {
+    "q": "Tạo shortcut từ Desktop nhanh thế nào?",
+    "options": [
+      "Chuột phải > New > Shortcut hoặc Send to > Desktop.",
+      "Kéo vào Recycle Bin.",
+      "Nhấn F1.",
+      "Nhấn Print Screen."
+    ],
+    "answer": 0,
+    "hint": "Menu chuột phải cung cấp lệnh."
+  },
+  {
+    "q": "Xoá shortcut ảnh hưởng gì tới tệp gốc?",
+    "options": [
+      "Không xoá tệp gốc.",
+      "Xoá luôn tệp gốc.",
+      "Khoá tài khoản.",
+      "Đổi tên thư mục hệ thống."
+    ],
+    "answer": 0,
+    "hint": "Chỉ là đường dẫn."
+  },
+  {
+    "q": "Phóng to cực đại cửa sổ tương ứng với nút nào?",
+    "options": [
+      "Maximize.",
+      "Minimize.",
+      "Close.",
+      "Help."
+    ],
+    "answer": 0,
+    "hint": "Ba nút điều khiển ở góc phải."
+  },
+  {
+    "q": "Tổ hợp phím để chuyển nhanh giữa cửa sổ đang mở:",
+    "options": [
+      "Alt + Tab.",
+      "Ctrl + C.",
+      "Win + D chỉ thu nhỏ tất cả.",
+      "Shift + Space."
+    ],
+    "answer": 0,
+    "hint": "Alt+Tab hiển thị bộ chọn cửa sổ."
+  },
+  {
+    "q": "Thay hình nền Desktop tại đâu?",
+    "options": [
+      "Settings > Personalization > Background.",
+      "Control Panel > Devices.",
+      "This PC > System32.",
+      "Task Manager > Startup."
+    ],
+    "answer": 0,
+    "hint": "Cá nhân hoá trong Personalization."
+  },
+  {
+    "q": "Đổi ngày giờ trong Windows 10 tại đâu?",
+    "options": [
+      "Settings > Time & Language > Date & time.",
+      "Control Panel > Devices.",
+      "File Explorer > View.",
+      "Microsoft Store."
+    ],
+    "answer": 0,
+    "hint": "Có thể tự động hoặc thủ công."
+  },
+  {
+    "q": "Điều chỉnh âm lượng tổng:",
+    "options": [
+      "Settings > System > Sound hoặc biểu tượng loa trên Taskbar.",
+      "Recycle Bin.",
+      "Start Menu > Power.",
+      "BIOS."
+    ],
+    "answer": 0,
+    "hint": "Có thanh trượt âm lượng."
+  },
+  {
+    "q": "Thêm ngôn ngữ bàn phím ở:",
+    "options": [
+      "Settings > Time & Language > Language > Add a keyboard.",
+      "Device Manager.",
+      "Disk Management.",
+      "Windows Defender."
+    ],
+    "answer": 0,
+    "hint": "Có thể chuyển bằng Alt+Shift."
+  },
+  {
+    "q": "Xem thông tin RAM/phiên bản Windows tại:",
+    "options": [
+      "Settings > System > About.",
+      "Paint.",
+      "Notepad.",
+      "Windows Media Player."
+    ],
+    "answer": 0,
+    "hint": "Trang About hiển thị thông tin hệ thống."
+  },
+  {
+    "q": "Chụp toàn màn hình nhanh:",
+    "options": [
+      "Phím Print Screen (PrtScn).",
+      "Ctrl + A.",
+      "Alt + F4.",
+      "Shift + Tab."
+    ],
+    "answer": 0,
+    "hint": "Ảnh lưu tạm vào clipboard."
+  },
+  {
+    "q": "Đóng ứng dụng không phản hồi dùng:",
+    "options": [
+      "Task Manager > End Task.",
+      "Windows Update.",
+      "Device Manager > Disable.",
+      "Paint > Close."
+    ],
+    "answer": 0,
+    "hint": "Task Manager giám sát tiến trình."
+  },
+  {
+    "q": "Kết nối thiết bị USB yêu cầu:",
+    "options": [
+      "Cắm vào cổng USB; Windows tự nhận driver nếu có.",
+      "Phải tắt máy trước.",
+      "Rút nguồn máy tính.",
+      "Chỉ cắm vào cổng HDMI."
+    ],
+    "answer": 0,
+    "hint": "Windows sẽ cài driver."
+  },
+  {
+    "q": "Tháo USB an toàn bằng:",
+    "options": [
+      "Biểu tượng Safe to remove hardware trên Taskbar hoặc Eject trong This PC.",
+      "Nhổ ra ngay khi chép xong.",
+      "Tắt máy.",
+      "Xoá trong Recycle Bin."
+    ],
+    "answer": 0,
+    "hint": "Ngắt khi hệ thống báo an toàn."
+  },
+  {
+    "q": "AutoPlay có tác dụng:",
+    "options": [
+      "Tự động đề xuất hành động khi gắn thiết bị như CD/USB.",
+      "Tăng tốc CPU.",
+      "Diệt virus tự động.",
+      "Tạo tài khoản mới."
+    ],
+    "answer": 0,
+    "hint": "Cửa sổ bật lên khi gắn thiết bị."
+  },
+  {
+    "q": "Thanh địa chỉ (Address bar) hiển thị gì trong File Explorer?",
+    "options": [
+      "Đường dẫn tới thư mục/tệp hiện tại.",
+      "Danh sách tiến trình.",
+      "Cấu hình mạng.",
+      "Tài khoản người dùng."
+    ],
+    "answer": 0,
+    "hint": "Cho biết vị trí hiện tại."
+  },
+  {
+    "q": "Thanh cuộn xuất hiện khi:",
+    "options": [
+      "Nội dung dài vượt quá vùng hiển thị cửa sổ.",
+      "Máy hết pin.",
+      "Không có mạng.",
+      "Ổ cứng đầy."
+    ],
+    "answer": 0,
+    "hint": "Có thể kéo ngang/dọc."
+  },
+  {
+    "q": "Ô tìm kiếm của File Explorer dùng để:",
+    "options": [
+      "Tìm tệp/thư mục theo từ khóa trong thư mục hiện tại.",
+      "Tìm mật khẩu.",
+      "Tìm thiết bị Bluetooth.",
+      "Tìm email."
+    ],
+    "answer": 0,
+    "hint": "Search box góc phải."
+  },
+  {
+    "q": "Navigation pane là:",
+    "options": [
+      "Bảng điều hướng dạng cây để truy cập nhanh thư viện/thư mục.",
+      "Thanh tác vụ.",
+      "Vùng thông báo.",
+      "Thùng rác."
+    ],
+    "answer": 0,
+    "hint": "Bên trái cửa sổ Explorer."
+  },
+  {
+    "q": "Status bar hiển thị:",
+    "options": [
+      "Thông tin số mục, mục đang chọn…",
+      "Danh bạ email.",
+      "Cấp nguồn CPU.",
+      "Chế độ màn hình."
+    ],
+    "answer": 0,
+    "hint": "Dưới cùng cửa sổ."
+  },
+  {
+    "q": "Mở tệp/thư mục trong Windows:",
+    "options": [
+      "Nhấp đúp chuột trái hoặc chọn và Enter.",
+      "Kéo vào Recycle Bin.",
+      "Nhấn Ctrl+S.",
+      "Nhấn F1."
+    ],
+    "answer": 0,
+    "hint": "Cách mở cơ bản."
+  },
+  {
+    "q": "Di chuyển cửa sổ:",
+    "options": [
+      "Giữ chuột trên thanh tiêu đề và kéo.",
+      "Giữ chuột ở Status bar.",
+      "Nhấn Alt+F4.",
+      "Nhấn Esc."
+    ],
+    "answer": 0,
+    "hint": "Thanh tiêu đề cho phép kéo."
+  },
+  {
+    "q": "Thay đổi kích thước cửa sổ bằng kéo chuột ở đâu?",
+    "options": [
+      "Các cạnh/góc cửa sổ.",
+      "Giữa màn hình.",
+      "Trên Taskbar.",
+      "Trong Recycle Bin."
+    ],
+    "answer": 0,
+    "hint": "Con trỏ thành mũi tên hai đầu."
+  },
+  {
+    "q": "Nút Minimize có tác dụng:",
+    "options": [
+      "Thu nhỏ cửa sổ xuống Taskbar, ứng dụng vẫn chạy.",
+      "Đóng hẳn ứng dụng.",
+      "Mở Task Manager.",
+      "Chuyển người dùng."
+    ],
+    "answer": 0,
+    "hint": "Thu nhỏ để dọn màn hình."
+  },
+  {
+    "q": "Close (X) sẽ:",
+    "options": [
+      "Đóng cửa sổ và kết thúc chương trình đang chạy.",
+      "Thu nhỏ xuống Taskbar.",
+      "Phóng to.",
+      "Khóa máy."
+    ],
+    "answer": 0,
+    "hint": "Đóng hẳn tiến trình ứng dụng."
+  },
+  {
+    "q": "Mạng xã hội dùng để:",
+    "options": [
+      "Kết nối, chia sẻ nội dung/hoạt động giữa cá nhân qua Internet.",
+      "Lưu trữ phần cứng.",
+      "Cấp phép phần mềm.",
+      "Lắp đặt CPU."
+    ],
+    "answer": 0,
+    "hint": "Ví dụ: Facebook."
+  },
+  {
+    "q": "Ứng dụng giao tiếp gồm:",
+    "options": [
+      "Email, nhắn tin, thoại/video (Outlook, Gmail, Skype).",
+      "File Explorer, Paint.",
+      "Device Manager.",
+      "Disk Cleanup."
+    ],
+    "answer": 0,
+    "hint": "Trao đổi thông tin/tệp."
+  },
+  {
+    "q": "Truyền thông đa phương tiện quản lý gì?",
+    "options": [
+      "Âm nhạc, video, hình ảnh, trình chiếu…",
+      "BIOS.",
+      "Quyền truy cập thợ sửa.",
+      "Dữ liệu cảm biến CPU."
+    ],
+    "answer": 0,
+    "hint": "Ví dụ iTunes."
+  },
+  {
+    "q": "Cửa hàng ứng dụng di động là:",
+    "options": [
+      "Nền tảng tải app cho thiết bị (App Store, Google Play).",
+      "Hệ điều hành máy tính.",
+      "Phần cứng CPU.",
+      "Thiết bị mạng."
+    ],
+    "answer": 0,
+    "hint": "Ứng dụng di động được phân phối tại đây."
+  },
+  {
+    "q": "Phần mềm hỗ trợ tiếp cận (accessibility) mục tiêu:",
+    "options": [
+      "Giúp mọi người, đặc biệt người khuyết tật, sử dụng CNTT.",
+      "Tăng dung lượng ổ cứng.",
+      "Mua bản quyền nhạc.",
+      "Giảm ping chơi game."
+    ],
+    "answer": 0,
+    "hint": "Ví dụ đọc màn hình, nhận diện giọng nói."
+  },
+  {
+    "q": "Khi tải phần mềm từ Internet, điều nên làm:",
+    "options": [
+      "Chỉ tải từ nguồn tin cậy; quét virus trước khi cài.",
+      "Tắt tường lửa.",
+      "Tắt trình duyệt.",
+      "Gỡ driver."
+    ],
+    "answer": 0,
+    "hint": "An toàn là ưu tiên."
+  },
+  {
+    "q": "Điểm khác nhau cơ bản giữa IT và CT trong ICT:",
+    "options": [
+      "IT lưu trữ/xử lý thông tin; CT hỗ trợ truyền thông, in ấn, kết nối.",
+      "IT là phần cứng; CT là phần mềm.",
+      "IT là Internet; CT là Cloud.",
+      "Không có khác biệt."
+    ],
+    "answer": 0,
+    "hint": "Hai mảng hợp thành ICT."
+  },
+  {
+    "q": "Ví dụ về dịch vụ ICT trong đời sống:",
+    "options": [
+      "Lướt web, gọi điện, GPS, chơi game trực tuyến.",
+      "Chỉ in ấn giấy tờ.",
+      "Dùng máy ảnh phim.",
+      "Quản lý nhiệt độ CPU."
+    ],
+    "answer": 0,
+    "hint": "Nêu trong sách phần 1.1."
+  },
+  {
+    "q": "Một lợi ích của ICT đối với tổ chức:",
+    "options": [
+      "Tối ưu quy trình, quan hệ khách hàng và nhà cung cấp.",
+      "Loại bỏ nhu cầu bảo mật.",
+      "Loại bỏ đào tạo.",
+      "Thay thế hoàn toàn con người."
+    ],
+    "answer": 0,
+    "hint": "Giúp nâng cao chất lượng dữ liệu/thông tin."
+  },
+  {
+    "q": "Ví dụ ứng dụng thiết kế:",
+    "options": [
+      "AutoCAD, Photoshop.",
+      "Excel, Word.",
+      "Notepad, Paint 3D.",
+      "Device Manager, DiskPart."
+    ],
+    "answer": 0,
+    "hint": "Tạo lập đồ hoạ/bản vẽ kỹ thuật."
+  },
+  {
+    "q": "Chọn phương án SAI:",
+    "options": [
+      "RAM lưu tạm và mất dữ liệu khi tắt máy.",
+      "ROM chứa chương trình khởi động, không xoá khi tắt máy.",
+      "CPU là bộ não xử lý lệnh.",
+      "Recycle Bin là nơi tăng hiệu năng CPU."
+    ],
+    "answer": 3,
+    "hint": "Recycle Bin không liên quan CPU."
+  },
+  {
+    "q": "Chọn phát biểu ĐÚNG:",
+    "options": [
+      "Shortcut xóa đi không làm mất tệp gốc.",
+      "Xóa shortcut sẽ xóa luôn tệp gốc.",
+      "Shortcut là tệp cài đặt chương trình.",
+      "Shortcut không thể đổi tên."
+    ],
+    "answer": 0,
+    "hint": "Shortcut chỉ là đường dẫn."
+  },
+  {
+    "q": "Chọn phát biểu SAI về Taskbar:",
+    "options": [
+      "Chỉ hiển thị ngày giờ, không hiển thị ứng dụng đang mở.",
+      "Có vùng thông báo hệ thống.",
+      "Có thể ghim ứng dụng thường dùng.",
+      "Hiển thị biểu tượng chương trình đang chạy."
+    ],
+    "answer": 0,
+    "hint": "Taskbar hiển thị app đang mở."
+  },
+  {
+    "q": "Chọn phát biểu ĐÚNG về HDMI:",
+    "options": [
+      "Dùng truyền âm thanh/hình ảnh độ phân giải cao.",
+      "Chỉ truyền dữ liệu bàn phím.",
+      "Chỉ sạc pin.",
+      "Thay thế hoàn toàn USB."
+    ],
+    "answer": 0,
+    "hint": "Chuẩn đa phương tiện số."
+  },
+  {
+    "q": "Chọn phát biểu SAI về AutoPlay:",
+    "options": [
+      "Luôn luôn cài đặt phần mềm tự động mà không cần hỏi.",
+      "Đề xuất hành động khi gắn thiết bị.",
+      "Có thể tắt/bật trong cài đặt.",
+      "Xuất hiện khi cắm CD/USB."
+    ],
+    "answer": 0,
+    "hint": "Không tự ý cài đặt."
+  },
+  {
+    "q": "Thiết bị Bàn phím thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Chuột thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Máy quét thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Loa thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Màn hình thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Webcam thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Micro thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Máy in thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Thiết bị Màn hình cảm ứng thuộc nhóm nào?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 2,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra."
+  },
+  {
+    "q": "Cổng USB thường dùng cho mục đích gì?",
+    "options": [
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 0,
+    "hint": "Nhớ đặc trưng từng cổng."
+  },
+  {
+    "q": "Cổng HDMI thường dùng cho mục đích gì?",
+    "options": [
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 1,
+    "hint": "Nhớ đặc trưng từng cổng."
+  },
+  {
+    "q": "Cổng RJ-45 thường dùng cho mục đích gì?",
+    "options": [
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 2,
+    "hint": "Nhớ đặc trưng từng cổng."
+  },
+  {
+    "q": "Cổng FireWire thường dùng cho mục đích gì?",
+    "options": [
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 3,
+    "hint": "Nhớ đặc trưng từng cổng."
+  },
+  {
+    "q": "Hệ điều hành nào sau đây thuộc nhóm máy tính cá nhân?",
+    "options": [
+      "Windows, macOS, Linux",
+      "Android",
+      "macOS",
+      "iOS"
+    ],
+    "answer": 0,
+    "hint": "Phân biệt OS cho PC và di động."
+  },
+  {
+    "q": "Hệ điều hành nào sau đây thuộc nhóm di động?",
+    "options": [
+      "Android, iOS",
+      "Android",
+      "macOS",
+      "iOS"
+    ],
+    "answer": 0,
+    "hint": "Phân biệt OS cho PC và di động."
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để đổi hình nền Desktop?",
+    "options": [
+      "Personalization > Background",
+      "Time & Language > Date & time",
+      "System > About",
+      "System > Sound"
+    ],
+    "answer": 0,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng."
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để đổi ngày giờ?",
+    "options": [
+      "Personalization > Background",
+      "Time & Language > Date & time",
+      "System > About",
+      "System > Sound"
+    ],
+    "answer": 1,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng."
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để xem thông tin hệ thống?",
+    "options": [
+      "Personalization > Background",
+      "Time & Language > Date & time",
+      "System > About",
+      "System > Sound"
+    ],
+    "answer": 2,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng."
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để điều chỉnh âm lượng?",
+    "options": [
+      "Personalization > Background",
+      "Time & Language > Date & time",
+      "System > About",
+      "System > Sound"
+    ],
+    "answer": 3,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng."
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để thêm ngôn ngữ bàn phím?",
+    "options": [
+      "Time & Language > Language",
+      "Time & Language > Date & time",
+      "System > About",
+      "System > Sound"
+    ],
+    "answer": 0,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng."
+  },
+  {
+    "q": "Khi nào nên dùng 'Eject' trước khi tháo thiết bị USB?",
+    "options": [
+      "Khi thiết bị còn gắn và có thể đang được truy cập.",
+      "Chỉ khi pin yếu.",
+      "Khi CPU quá nóng.",
+      "Không bao giờ cần."
+    ],
+    "answer": 0,
+    "hint": "Ngắt kết nối an toàn tránh mất dữ liệu."
+  },
+  {
+    "q": "Chọn phát biểu đúng về ROM:",
+    "options": [
+      "Chứa chương trình khởi động; không xoá khi tắt máy.",
+      "Dùng để lưu tạm ứng dụng đang chạy.",
+      "Là ổ cứng di động.",
+      "Thường là bộ nhớ của card màn hình."
+    ],
+    "answer": 0,
+    "hint": "ROM là bộ nhớ chỉ đọc."
+  },
+  {
+    "q": "Khi Minimize một cửa sổ:",
+    "options": [
+      "Cửa sổ thu nhỏ xuống Taskbar nhưng chương trình vẫn chạy.",
+      "Chương trình bị đóng.",
+      "Cửa sổ phóng to.",
+      "Máy tính tắt."
+    ],
+    "answer": 0,
+    "hint": "Khác với Close."
+  },
+  {
+    "q": "Tổ hợp phím nào giúp chuyển đổi nhanh cửa sổ đang mở?",
+    "options": [
+      "Alt + Tab.",
+      "Ctrl + S.",
+      "Win + L.",
+      "Shift + Esc."
+    ],
+    "answer": 0,
+    "hint": "Alt+Tab hiển thị bộ chọn."
+  },
+  {
+    "q": "Thêm ngôn ngữ bàn phím cần thao tác:",
+    "options": [
+      "Settings > Time & Language > Language > Add a keyboard.",
+      "Control Panel > Power Options.",
+      "Device Manager > Keyboard.",
+      "Paint > Options."
+    ],
+    "answer": 0,
+    "hint": "Tùy chọn bàn phím trong Language."
+  },
+  {
+    "q": "ICT là viết tắt của cụm từ nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Integrated Computing Tools.",
+      "Information and Communications Technology.",
+      "Internet and Cloud Technology.",
+      "International Computer Technology."
+    ],
+    "answer": 1,
+    "hint": "ICT gồm công nghệ thông tin và công nghệ truyền thông. (biến thể)"
+  },
+  {
+    "q": "Phần cứng (hardware) là gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Tài khoản đăng nhập hệ điều hành.",
+      "Các chương trình chạy trên máy tính.",
+      "Dữ liệu người dùng.",
+      "Thành phần vật lý có thể nhìn, chạm được của máy tính."
+    ],
+    "answer": 3,
+    "hint": "Phần cứng gồm CPU, RAM, ổ cứng, thiết bị ngoại vi… (biến thể)"
+  },
+  {
+    "q": "Bộ xử lý trung tâm CPU có vai trò chính nào sau đây (chọn đáp án đúng nhất)?",
+    "options": [
+      "Thực hiện lệnh và điều khiển các thành phần khác.",
+      "Hiển thị hình ảnh lên màn hình.",
+      "Cung cấp điện cho máy tính.",
+      "Lưu trữ lâu dài các tệp tin."
+    ],
+    "answer": 0,
+    "hint": "CPU là 'bộ não' của máy tính. (biến thể)"
+  },
+  {
+    "q": "RAM khác ROM ở điểm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "RAM lưu tạm dữ liệu và mất khi tắt máy; ROM chứa chương trình khởi động, không mất khi tắt.",
+      "RAM nằm trên ổ cứng; ROM là bộ nhớ ngoài.",
+      "RAM dùng cho lưu trữ lâu dài; ROM dùng cho tệp tạm.",
+      "RAM chỉ đọc; ROM đọc/ghi liên tục."
+    ],
+    "answer": 0,
+    "hint": "RAM là bộ nhớ truy cập ngẫu nhiên; ROM chỉ đọc. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào sau đây là bộ nhớ lưu trữ rời dùng giao tiếp USB (chọn đáp án đúng nhất)?",
+    "options": [
+      "CPU.",
+      "USB flash drive.",
+      "Bộ nguồn.",
+      "RAM."
+    ],
+    "answer": 1,
+    "hint": "USB sử dụng bộ nhớ flash, dung lượng lớn, kích thước nhỏ. (biến thể)"
+  },
+  {
+    "q": "Ổ đĩa nào dùng tia laser để đọc/ghi dữ liệu (chọn đáp án đúng nhất)?",
+    "options": [
+      "USB.",
+      "Thẻ nhớ.",
+      "CD/DVD.",
+      "Ổ cứng HDD."
+    ],
+    "answer": 2,
+    "hint": "CD/DVD là đĩa quang. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu đúng về hiệu năng:",
+    "options": [
+      "ROM càng lớn thì phần mềm chạy càng nhanh.",
+      "Bỏ CPU, chỉ cần RAM lớn là đủ.",
+      "RAM nhiều giúp CPU ít phải chờ, xử lý nhanh hơn.",
+      "Ổ cứng quyết định toàn bộ tốc độ tính toán."
+    ],
+    "answer": 2,
+    "hint": "RAM thu thập dữ liệu đang xử lý để CPU truy cập nhanh. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào KHÔNG phải là thiết bị vào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Chuột.",
+      "Màn hình.",
+      "Máy quét (scanner).",
+      "Bàn phím."
+    ],
+    "answer": 1,
+    "hint": "Màn hình là thiết bị ra. (biến thể)"
+  },
+  {
+    "q": "Cổng nào truyền âm thanh/hình ảnh độ phân giải cao giữa máy tính và màn hình/TV (chọn đáp án đúng nhất)?",
+    "options": [
+      "FireWire.",
+      "HDMI.",
+      "Cổng mạng RJ-45.",
+      "USB."
+    ],
+    "answer": 1,
+    "hint": "HDMI dành cho đa phương tiện độ phân giải cao. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào là thiết bị kết hợp vừa là vào vừa là ra (chọn đáp án đúng nhất)?",
+    "options": [
+      "Chuột quang.",
+      "Máy in kim.",
+      "Loa ngoài.",
+      "Màn hình cảm ứng."
+    ],
+    "answer": 3,
+    "hint": "Màn hình cảm ứng nhận chạm (vào) và hiển thị (ra). (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào thường dùng để số hóa tài liệu giấy (chọn đáp án đúng nhất)?",
+    "options": [
+      "Chuột.",
+      "Scanner.",
+      "Webcam.",
+      "Loa."
+    ],
+    "answer": 1,
+    "hint": "Máy quét chuyển giấy thành dữ liệu số. (biến thể)"
+  },
+  {
+    "q": "Cổng mạng dùng để làm gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Kết nối bàn phím PS/2.",
+      "Kết nối loa.",
+      "Kết nối máy tính với mạng LAN/Internet qua dây.",
+      "Kết nối màn hình."
+    ],
+    "answer": 2,
+    "hint": "Cổng RJ‑45 cho Ethernet. (biến thể)"
+  },
+  {
+    "q": "Ổ cứng rời khác gì ổ cứng gắn trong (chọn đáp án đúng nhất)?",
+    "options": [
+      "Không thể cắm vào PC.",
+      "Không lưu trữ được dữ liệu.",
+      "Chỉ dùng cho điện thoại.",
+      "Kết nối ngoài qua USB nhưng cùng chức năng lưu trữ."
+    ],
+    "answer": 3,
+    "hint": "Ổ cứng rời di động, cắm USB. (biến thể)"
+  },
+  {
+    "q": "Thẻ nhớ thường dùng cho thiết bị nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Nguồn ATX.",
+      "Máy ảnh, điện thoại.",
+      "CPU.",
+      "Màn hình."
+    ],
+    "answer": 1,
+    "hint": "Thẻ nhớ là bộ nhớ mở rộng cho thiết bị cầm tay. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào phát âm thanh ra môi trường (chọn đáp án đúng nhất)?",
+    "options": [
+      "Chuột.",
+      "Loa.",
+      "Bàn phím.",
+      "Micro."
+    ],
+    "answer": 1,
+    "hint": "Loa là thiết bị ra âm thanh. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào ghi nhận âm thanh đưa vào máy tính (chọn đáp án đúng nhất)?",
+    "options": [
+      "Máy in.",
+      "Màn hình.",
+      "Micro.",
+      "Loa."
+    ],
+    "answer": 2,
+    "hint": "Micro là thiết bị vào âm thanh. (biến thể)"
+  },
+  {
+    "q": "Docking Station có mục đích chính gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Tăng dung lượng ROM.",
+      "Mở rộng cổng kết nối cho laptop.",
+      "Thay CPU.",
+      "Tăng RAM."
+    ],
+    "answer": 1,
+    "hint": "Docking giúp laptop như PC bàn. (biến thể)"
+  },
+  {
+    "q": "FireWire thường dùng để (chọn đáp án đúng nhất)?",
+    "options": [
+      "Kết nối mạng LAN.",
+      "Xuất hình sang máy in.",
+      "Sạc pin.",
+      "Kết nối thiết bị thu video (chuẩn Apple)."
+    ],
+    "answer": 3,
+    "hint": "IEEE 1394 (FireWire) dùng cho video. (biến thể)"
+  },
+  {
+    "q": "All-in-one là loại máy tính như thế nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Tích hợp thân máy vào màn hình.",
+      "Chỉ dùng pin.",
+      "Không có ổ cứng.",
+      "Không cần màn hình."
+    ],
+    "answer": 0,
+    "hint": "AIO gọn gàng, tích hợp. (biến thể)"
+  },
+  {
+    "q": "Laptop khác Desktop ở điểm nào sau đây (chọn đáp án đúng nhất)?",
+    "options": [
+      "Cấu hình luôn mạnh hơn.",
+      "Di động, tích hợp màn hình/bàn phím/chuột, dùng pin.",
+      "Không kết nối Internet được.",
+      "Không cài được hệ điều hành."
+    ],
+    "answer": 1,
+    "hint": "Laptop tối ưu năng lượng, di động. (biến thể)"
+  },
+  {
+    "q": "Hệ điều hành (OS) là gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Ứng dụng văn phòng.",
+      "Trình duyệt web.",
+      "Phần mềm hệ thống quản lý phần cứng, tài nguyên và giao diện.",
+      "Thiết bị ngoại vi."
+    ],
+    "answer": 2,
+    "hint": "OS điều phối và cung cấp giao diện làm việc. (biến thể)"
+  },
+  {
+    "q": "Ví dụ hệ điều hành máy tính cá nhân: (chọn đáp án đúng)",
+    "options": [
+      "Windows, macOS, Linux.",
+      "Android, iOS.",
+      "Chrome, Edge.",
+      "Photoshop, AutoCAD."
+    ],
+    "answer": 0,
+    "hint": "Windows/macOS/Linux là OS cho PC. (biến thể)"
+  },
+  {
+    "q": "Ví dụ hệ điều hành di động: (chọn đáp án đúng)",
+    "options": [
+      "Android, iOS.",
+      "Windows, Linux.",
+      "Word, Excel.",
+      "Chrome, Edge."
+    ],
+    "answer": 0,
+    "hint": "Hệ điều hành cho smartphone. (biến thể)"
+  },
+  {
+    "q": "Gói ứng dụng văn phòng gồm: (chọn đáp án đúng)",
+    "options": [
+      "Trò chơi 3D.",
+      "Trình điều khiển (driver).",
+      "Phần cứng máy tính.",
+      "Xử lý văn bản, bảng tính, trình chiếu."
+    ],
+    "answer": 3,
+    "hint": "Ví dụ: Microsoft Office. (biến thể)"
+  },
+  {
+    "q": "EULA là gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Tập tin đa phương tiện.",
+      "Mạng xã hội.",
+      "Trình duyệt web.",
+      "Thoả thuận cấp phép người dùng cuối."
+    ],
+    "answer": 3,
+    "hint": "Ràng buộc pháp lý khi dùng phần mềm. (biến thể)"
+  },
+  {
+    "q": "Phần mềm trả phí (proprietary) cho phép: (chọn đáp án đúng)",
+    "options": [
+      "Sao chép vô hạn không điều kiện.",
+      "Không cần giấy phép.",
+      "Tự do sửa và phát hành.",
+      "Sử dụng theo điều khoản, không tự do sửa/ phát hành."
+    ],
+    "answer": 3,
+    "hint": "Bị giới hạn bởi chủ sở hữu. (biến thể)"
+  },
+  {
+    "q": "Mã nguồn mở (open source) nghĩa là: (chọn đáp án đúng)",
+    "options": [
+      "Chỉ dành cho Windows.",
+      "Được phép nghiên cứu/sửa đổi theo giấy phép mở.",
+      "Hoàn toàn không có bản quyền.",
+      "Luôn miễn phí bản quyền âm nhạc."
+    ],
+    "answer": 1,
+    "hint": "GPL, MIT… cho phép sửa/ phân phối theo điều kiện. (biến thể)"
+  },
+  {
+    "q": "Shareware là: (chọn đáp án đúng)",
+    "options": [
+      "Thiết bị phần cứng.",
+      "Phần mềm cho dùng thử rồi trả phí.",
+      "Phần mềm hệ thống.",
+      "Trình điều khiển thiết bị."
+    ],
+    "answer": 1,
+    "hint": "Dùng thử 30–60 ngày… (biến thể)"
+  },
+  {
+    "q": "Freeware là: (chọn đáp án đúng)",
+    "options": [
+      "Chỉ dùng offline.",
+      "Không có bản quyền.",
+      "Bắt buộc trả phí hàng tháng.",
+      "Dùng miễn phí, có thể sao chép phát hành theo điều khoản nhà cung cấp."
+    ],
+    "answer": 3,
+    "hint": "Freeware miễn phí sử dụng. (biến thể)"
+  },
+  {
+    "q": "Adware có đặc điểm: (chọn đáp án đúng)",
+    "options": [
+      "Không cần Internet.",
+      "Miễn phí nhưng kèm quảng cáo; có thể thu thập dữ liệu.",
+      "Chỉ chạy trên Linux.",
+      "Chỉ là thiết bị phần cứng."
+    ],
+    "answer": 1,
+    "hint": "Quảng cáo là nguồn doanh thu. (biến thể)"
+  },
+  {
+    "q": "Để đăng nhập Windows 10, cần thao tác gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Nhập đúng tài khoản và mật khẩu tại màn hình đăng nhập.",
+      "Cắm USB vào cổng trước.",
+      "Tắt nguồn rồi bật lại.",
+      "Nhấn Ctrl+Alt+Del hai lần."
+    ],
+    "answer": 0,
+    "hint": "Đảm bảo mật khẩu đủ mạnh. (biến thể)"
+  },
+  {
+    "q": "Sau khi đăng nhập, khu vực làm việc chính gọi là: (chọn đáp án đúng)",
+    "options": [
+      "Desktop.",
+      "Recycle Bin.",
+      "BIOS.",
+      "Control Panel."
+    ],
+    "answer": 0,
+    "hint": "Desktop là không gian thao tác. (biến thể)"
+  },
+  {
+    "q": "Start Menu dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Điều chỉnh độ sáng màn hình.",
+      "Thay thế ổ cứng.",
+      "Truy cập ứng dụng, cài đặt, tắt máy…",
+      "Chỉ hiển thị ảnh nền."
+    ],
+    "answer": 2,
+    "hint": "Nút Windows ở góc trái Taskbar. (biến thể)"
+  },
+  {
+    "q": "Taskbar hiển thị: (chọn đáp án đúng)",
+    "options": [
+      "Biểu tượng ứng dụng đang mở và ghim; các khu vực hệ thống.",
+      "Chỉ Wi‑Fi.",
+      "Chỉ cài đặt âm thanh.",
+      "Chỉ ngày giờ."
+    ],
+    "answer": 0,
+    "hint": "Thanh dưới cùng mặc định. (biến thể)"
+  },
+  {
+    "q": "Biểu tượng Recycle Bin dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Chứa tạm tệp đã xoá, có thể khôi phục.",
+      "Tạo phím tắt.",
+      "Gỡ chương trình.",
+      "Cài đặt âm thanh."
+    ],
+    "answer": 0,
+    "hint": "Xoá vĩnh viễn khi empty bin. (biến thể)"
+  },
+  {
+    "q": "Biểu tượng có mũi tên nhỏ ở góc nghĩa là: (chọn đáp án đúng)",
+    "options": [
+      "Tệp ẩn.",
+      "Lối tắt (shortcut).",
+      "Tệp hệ thống.",
+      "Tệp nén."
+    ],
+    "answer": 1,
+    "hint": "Shortcut là đường dẫn đến tệp gốc. (biến thể)"
+  },
+  {
+    "q": "Tạo shortcut từ Desktop nhanh thế nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Nhấn F1.",
+      "Chuột phải > New > Shortcut hoặc Send to > Desktop.",
+      "Kéo vào Recycle Bin.",
+      "Nhấn Print Screen."
+    ],
+    "answer": 1,
+    "hint": "Menu chuột phải cung cấp lệnh. (biến thể)"
+  },
+  {
+    "q": "Xoá shortcut ảnh hưởng gì tới tệp gốc (chọn đáp án đúng nhất)?",
+    "options": [
+      "Khoá tài khoản.",
+      "Xoá luôn tệp gốc.",
+      "Không xoá tệp gốc.",
+      "Đổi tên thư mục hệ thống."
+    ],
+    "answer": 2,
+    "hint": "Chỉ là đường dẫn. (biến thể)"
+  },
+  {
+    "q": "Phóng to cực đại cửa sổ tương ứng với nút nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Minimize.",
+      "Close.",
+      "Help.",
+      "Maximize."
+    ],
+    "answer": 3,
+    "hint": "Ba nút điều khiển ở góc phải. (biến thể)"
+  },
+  {
+    "q": "Tổ hợp phím để chuyển nhanh giữa cửa sổ đang mở: (chọn đáp án đúng)",
+    "options": [
+      "Win + D chỉ thu nhỏ tất cả.",
+      "Alt + Tab.",
+      "Ctrl + C.",
+      "Shift + Space."
+    ],
+    "answer": 1,
+    "hint": "Alt+Tab hiển thị bộ chọn cửa sổ. (biến thể)"
+  },
+  {
+    "q": "Thay hình nền Desktop tại đâu (chọn đáp án đúng nhất)?",
+    "options": [
+      "This PC > System32.",
+      "Task Manager > Startup.",
+      "Control Panel > Devices.",
+      "Settings > Personalization > Background."
+    ],
+    "answer": 3,
+    "hint": "Cá nhân hoá trong Personalization. (biến thể)"
+  },
+  {
+    "q": "Đổi ngày giờ trong Windows 10 tại đâu (chọn đáp án đúng nhất)?",
+    "options": [
+      "Microsoft Store.",
+      "File Explorer > View.",
+      "Control Panel > Devices.",
+      "Settings > Time & Language > Date & time."
+    ],
+    "answer": 3,
+    "hint": "Có thể tự động hoặc thủ công. (biến thể)"
+  },
+  {
+    "q": "Điều chỉnh âm lượng tổng: (chọn đáp án đúng)",
+    "options": [
+      "Start Menu > Power.",
+      "BIOS.",
+      "Recycle Bin.",
+      "Settings > System > Sound hoặc biểu tượng loa trên Taskbar."
+    ],
+    "answer": 3,
+    "hint": "Có thanh trượt âm lượng. (biến thể)"
+  },
+  {
+    "q": "Thêm ngôn ngữ bàn phím ở: (chọn đáp án đúng)",
+    "options": [
+      "Settings > Time & Language > Language > Add a keyboard.",
+      "Device Manager.",
+      "Windows Defender.",
+      "Disk Management."
+    ],
+    "answer": 0,
+    "hint": "Có thể chuyển bằng Alt+Shift. (biến thể)"
+  },
+  {
+    "q": "Xem thông tin RAM/phiên bản Windows tại: (chọn đáp án đúng)",
+    "options": [
+      "Settings > System > About.",
+      "Notepad.",
+      "Paint.",
+      "Windows Media Player."
+    ],
+    "answer": 0,
+    "hint": "Trang About hiển thị thông tin hệ thống. (biến thể)"
+  },
+  {
+    "q": "Chụp toàn màn hình nhanh: (chọn đáp án đúng)",
+    "options": [
+      "Phím Print Screen (PrtScn).",
+      "Alt + F4.",
+      "Ctrl + A.",
+      "Shift + Tab."
+    ],
+    "answer": 0,
+    "hint": "Ảnh lưu tạm vào clipboard. (biến thể)"
+  },
+  {
+    "q": "Đóng ứng dụng không phản hồi dùng: (chọn đáp án đúng)",
+    "options": [
+      "Paint > Close.",
+      "Device Manager > Disable.",
+      "Windows Update.",
+      "Task Manager > End Task."
+    ],
+    "answer": 3,
+    "hint": "Task Manager giám sát tiến trình. (biến thể)"
+  },
+  {
+    "q": "Kết nối thiết bị USB yêu cầu: (chọn đáp án đúng)",
+    "options": [
+      "Phải tắt máy trước.",
+      "Rút nguồn máy tính.",
+      "Cắm vào cổng USB; Windows tự nhận driver nếu có.",
+      "Chỉ cắm vào cổng HDMI."
+    ],
+    "answer": 2,
+    "hint": "Windows sẽ cài driver. (biến thể)"
+  },
+  {
+    "q": "Tháo USB an toàn bằng: (chọn đáp án đúng)",
+    "options": [
+      "Nhổ ra ngay khi chép xong.",
+      "Tắt máy.",
+      "Xoá trong Recycle Bin.",
+      "Biểu tượng Safe to remove hardware trên Taskbar hoặc Eject trong This PC."
+    ],
+    "answer": 3,
+    "hint": "Ngắt khi hệ thống báo an toàn. (biến thể)"
+  },
+  {
+    "q": "AutoPlay có tác dụng: (chọn đáp án đúng)",
+    "options": [
+      "Diệt virus tự động.",
+      "Tăng tốc CPU.",
+      "Tự động đề xuất hành động khi gắn thiết bị như CD/USB.",
+      "Tạo tài khoản mới."
+    ],
+    "answer": 2,
+    "hint": "Cửa sổ bật lên khi gắn thiết bị. (biến thể)"
+  },
+  {
+    "q": "Thanh địa chỉ (Address bar) hiển thị gì trong File Explorer (chọn đáp án đúng nhất)?",
+    "options": [
+      "Cấu hình mạng.",
+      "Đường dẫn tới thư mục/tệp hiện tại.",
+      "Tài khoản người dùng.",
+      "Danh sách tiến trình."
+    ],
+    "answer": 1,
+    "hint": "Cho biết vị trí hiện tại. (biến thể)"
+  },
+  {
+    "q": "Thanh cuộn xuất hiện khi: (chọn đáp án đúng)",
+    "options": [
+      "Nội dung dài vượt quá vùng hiển thị cửa sổ.",
+      "Ổ cứng đầy.",
+      "Máy hết pin.",
+      "Không có mạng."
+    ],
+    "answer": 0,
+    "hint": "Có thể kéo ngang/dọc. (biến thể)"
+  },
+  {
+    "q": "Ô tìm kiếm của File Explorer dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Tìm email.",
+      "Tìm mật khẩu.",
+      "Tìm tệp/thư mục theo từ khóa trong thư mục hiện tại.",
+      "Tìm thiết bị Bluetooth."
+    ],
+    "answer": 2,
+    "hint": "Search box góc phải. (biến thể)"
+  },
+  {
+    "q": "Navigation pane là: (chọn đáp án đúng)",
+    "options": [
+      "Thùng rác.",
+      "Bảng điều hướng dạng cây để truy cập nhanh thư viện/thư mục.",
+      "Vùng thông báo.",
+      "Thanh tác vụ."
+    ],
+    "answer": 1,
+    "hint": "Bên trái cửa sổ Explorer. (biến thể)"
+  },
+  {
+    "q": "Status bar hiển thị: (chọn đáp án đúng)",
+    "options": [
+      "Thông tin số mục, mục đang chọn…",
+      "Danh bạ email.",
+      "Chế độ màn hình.",
+      "Cấp nguồn CPU."
+    ],
+    "answer": 0,
+    "hint": "Dưới cùng cửa sổ. (biến thể)"
+  },
+  {
+    "q": "Mở tệp/thư mục trong Windows: (chọn đáp án đúng)",
+    "options": [
+      "Nhấn Ctrl+S.",
+      "Nhấn F1.",
+      "Kéo vào Recycle Bin.",
+      "Nhấp đúp chuột trái hoặc chọn và Enter."
+    ],
+    "answer": 3,
+    "hint": "Cách mở cơ bản. (biến thể)"
+  },
+  {
+    "q": "Di chuyển cửa sổ: (chọn đáp án đúng)",
+    "options": [
+      "Giữ chuột trên thanh tiêu đề và kéo.",
+      "Nhấn Esc.",
+      "Nhấn Alt+F4.",
+      "Giữ chuột ở Status bar."
+    ],
+    "answer": 0,
+    "hint": "Thanh tiêu đề cho phép kéo. (biến thể)"
+  },
+  {
+    "q": "Thay đổi kích thước cửa sổ bằng kéo chuột ở đâu (chọn đáp án đúng nhất)?",
+    "options": [
+      "Giữa màn hình.",
+      "Trên Taskbar.",
+      "Trong Recycle Bin.",
+      "Các cạnh/góc cửa sổ."
+    ],
+    "answer": 3,
+    "hint": "Con trỏ thành mũi tên hai đầu. (biến thể)"
+  },
+  {
+    "q": "Nút Minimize có tác dụng: (chọn đáp án đúng)",
+    "options": [
+      "Đóng hẳn ứng dụng.",
+      "Thu nhỏ cửa sổ xuống Taskbar, ứng dụng vẫn chạy.",
+      "Chuyển người dùng.",
+      "Mở Task Manager."
+    ],
+    "answer": 1,
+    "hint": "Thu nhỏ để dọn màn hình. (biến thể)"
+  },
+  {
+    "q": "Close (X) sẽ: (chọn đáp án đúng)",
+    "options": [
+      "Thu nhỏ xuống Taskbar.",
+      "Khóa máy.",
+      "Phóng to.",
+      "Đóng cửa sổ và kết thúc chương trình đang chạy."
+    ],
+    "answer": 3,
+    "hint": "Đóng hẳn tiến trình ứng dụng. (biến thể)"
+  },
+  {
+    "q": "Mạng xã hội dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Cấp phép phần mềm.",
+      "Kết nối, chia sẻ nội dung/hoạt động giữa cá nhân qua Internet.",
+      "Lắp đặt CPU.",
+      "Lưu trữ phần cứng."
+    ],
+    "answer": 1,
+    "hint": "Ví dụ: Facebook. (biến thể)"
+  },
+  {
+    "q": "Ứng dụng giao tiếp gồm: (chọn đáp án đúng)",
+    "options": [
+      "File Explorer, Paint.",
+      "Disk Cleanup.",
+      "Email, nhắn tin, thoại/video (Outlook, Gmail, Skype).",
+      "Device Manager."
+    ],
+    "answer": 2,
+    "hint": "Trao đổi thông tin/tệp. (biến thể)"
+  },
+  {
+    "q": "Truyền thông đa phương tiện quản lý gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Âm nhạc, video, hình ảnh, trình chiếu…",
+      "BIOS.",
+      "Dữ liệu cảm biến CPU.",
+      "Quyền truy cập thợ sửa."
+    ],
+    "answer": 0,
+    "hint": "Ví dụ iTunes. (biến thể)"
+  },
+  {
+    "q": "Cửa hàng ứng dụng di động là: (chọn đáp án đúng)",
+    "options": [
+      "Hệ điều hành máy tính.",
+      "Thiết bị mạng.",
+      "Phần cứng CPU.",
+      "Nền tảng tải app cho thiết bị (App Store, Google Play)."
+    ],
+    "answer": 3,
+    "hint": "Ứng dụng di động được phân phối tại đây. (biến thể)"
+  },
+  {
+    "q": "Phần mềm hỗ trợ tiếp cận (accessibility) mục tiêu: (chọn đáp án đúng)",
+    "options": [
+      "Mua bản quyền nhạc.",
+      "Giúp mọi người, đặc biệt người khuyết tật, sử dụng CNTT.",
+      "Giảm ping chơi game.",
+      "Tăng dung lượng ổ cứng."
+    ],
+    "answer": 1,
+    "hint": "Ví dụ đọc màn hình, nhận diện giọng nói. (biến thể)"
+  },
+  {
+    "q": "Khi tải phần mềm từ Internet, điều nên làm: (chọn đáp án đúng)",
+    "options": [
+      "Gỡ driver.",
+      "Tắt tường lửa.",
+      "Tắt trình duyệt.",
+      "Chỉ tải từ nguồn tin cậy; quét virus trước khi cài."
+    ],
+    "answer": 3,
+    "hint": "An toàn là ưu tiên. (biến thể)"
+  },
+  {
+    "q": "Điểm khác nhau cơ bản giữa IT và CT trong ICT: (chọn đáp án đúng)",
+    "options": [
+      "IT là Internet; CT là Cloud.",
+      "IT lưu trữ/xử lý thông tin; CT hỗ trợ truyền thông, in ấn, kết nối.",
+      "IT là phần cứng; CT là phần mềm.",
+      "Không có khác biệt."
+    ],
+    "answer": 1,
+    "hint": "Hai mảng hợp thành ICT. (biến thể)"
+  },
+  {
+    "q": "Ví dụ về dịch vụ ICT trong đời sống: (chọn đáp án đúng)",
+    "options": [
+      "Lướt web, gọi điện, GPS, chơi game trực tuyến.",
+      "Quản lý nhiệt độ CPU.",
+      "Dùng máy ảnh phim.",
+      "Chỉ in ấn giấy tờ."
+    ],
+    "answer": 0,
+    "hint": "Nêu trong sách phần 1.1. (biến thể)"
+  },
+  {
+    "q": "Một lợi ích của ICT đối với tổ chức: (chọn đáp án đúng)",
+    "options": [
+      "Thay thế hoàn toàn con người.",
+      "Loại bỏ đào tạo.",
+      "Loại bỏ nhu cầu bảo mật.",
+      "Tối ưu quy trình, quan hệ khách hàng và nhà cung cấp."
+    ],
+    "answer": 3,
+    "hint": "Giúp nâng cao chất lượng dữ liệu/thông tin. (biến thể)"
+  },
+  {
+    "q": "Ví dụ ứng dụng thiết kế: (chọn đáp án đúng)",
+    "options": [
+      "Notepad, Paint 3D.",
+      "Excel, Word.",
+      "Device Manager, DiskPart.",
+      "AutoCAD, Photoshop."
+    ],
+    "answer": 3,
+    "hint": "Tạo lập đồ hoạ/bản vẽ kỹ thuật. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phương án SAI:",
+    "options": [
+      "Recycle Bin là nơi tăng hiệu năng CPU.",
+      "RAM lưu tạm và mất dữ liệu khi tắt máy.",
+      "ROM chứa chương trình khởi động, không xoá khi tắt máy.",
+      "CPU là bộ não xử lý lệnh."
+    ],
+    "answer": 0,
+    "hint": "Recycle Bin không liên quan CPU. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu ĐÚNG:",
+    "options": [
+      "Shortcut xóa đi không làm mất tệp gốc.",
+      "Shortcut không thể đổi tên.",
+      "Xóa shortcut sẽ xóa luôn tệp gốc.",
+      "Shortcut là tệp cài đặt chương trình."
+    ],
+    "answer": 0,
+    "hint": "Shortcut chỉ là đường dẫn. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu SAI về Taskbar:",
+    "options": [
+      "Có thể ghim ứng dụng thường dùng.",
+      "Hiển thị biểu tượng chương trình đang chạy.",
+      "Có vùng thông báo hệ thống.",
+      "Chỉ hiển thị ngày giờ, không hiển thị ứng dụng đang mở."
+    ],
+    "answer": 3,
+    "hint": "Taskbar hiển thị app đang mở. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu ĐÚNG về HDMI:",
+    "options": [
+      "Chỉ truyền dữ liệu bàn phím.",
+      "Dùng truyền âm thanh/hình ảnh độ phân giải cao.",
+      "Chỉ sạc pin.",
+      "Thay thế hoàn toàn USB."
+    ],
+    "answer": 1,
+    "hint": "Chuẩn đa phương tiện số. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu SAI về AutoPlay:",
+    "options": [
+      "Xuất hiện khi cắm CD/USB.",
+      "Có thể tắt/bật trong cài đặt.",
+      "Luôn luôn cài đặt phần mềm tự động mà không cần hỏi.",
+      "Đề xuất hành động khi gắn thiết bị."
+    ],
+    "answer": 2,
+    "hint": "Không tự ý cài đặt. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Bàn phím thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra",
+      "thiết bị vào",
+      "thiết bị ra"
+    ],
+    "answer": 2,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Chuột thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị ra",
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Máy quét thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị ra",
+      "thiết bị vào",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Loa thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra",
+      "thiết bị vào",
+      "thiết bị ra"
+    ],
+    "answer": 3,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Màn hình thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị ra",
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Webcam thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi",
+      "thiết bị ra",
+      "vừa vào vừa ra"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Micro thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị ra",
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Máy in thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "không phải thiết bị ngoại vi",
+      "thiết bị ra",
+      "thiết bị vào",
+      "vừa vào vừa ra"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Màn hình cảm ứng thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "không phải thiết bị ngoại vi",
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra"
+    ],
+    "answer": 3,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Cổng USB thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "kết nối mạng LAN/Internet",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 2,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Cổng HDMI thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số",
+      "kết nối nhanh nhiều thiết bị ngoại vi"
+    ],
+    "answer": 0,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Cổng RJ-45 thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 2,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Cổng FireWire thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "kết nối thiết bị video kỹ thuật số",
+      "kết nối mạng LAN/Internet",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối nhanh nhiều thiết bị ngoại vi"
+    ],
+    "answer": 0,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Hệ điều hành nào sau đây thuộc nhóm máy tính cá nhân (chọn đáp án đúng nhất)?",
+    "options": [
+      "macOS",
+      "iOS",
+      "Android",
+      "Windows, macOS, Linux"
+    ],
+    "answer": 3,
+    "hint": "Phân biệt OS cho PC và di động. (biến thể)"
+  },
+  {
+    "q": "Hệ điều hành nào sau đây thuộc nhóm di động (chọn đáp án đúng nhất)?",
+    "options": [
+      "Android",
+      "iOS",
+      "macOS",
+      "Android, iOS"
+    ],
+    "answer": 3,
+    "hint": "Phân biệt OS cho PC và di động. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để đổi hình nền Desktop (chọn đáp án đúng nhất)?",
+    "options": [
+      "System > About",
+      "Time & Language > Date & time",
+      "Personalization > Background",
+      "System > Sound"
+    ],
+    "answer": 2,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để đổi ngày giờ (chọn đáp án đúng nhất)?",
+    "options": [
+      "System > Sound",
+      "Personalization > Background",
+      "System > About",
+      "Time & Language > Date & time"
+    ],
+    "answer": 3,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để xem thông tin hệ thống (chọn đáp án đúng nhất)?",
+    "options": [
+      "Personalization > Background",
+      "System > About",
+      "Time & Language > Date & time",
+      "System > Sound"
+    ],
+    "answer": 1,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để điều chỉnh âm lượng (chọn đáp án đúng nhất)?",
+    "options": [
+      "Personalization > Background",
+      "Time & Language > Date & time",
+      "System > Sound",
+      "System > About"
+    ],
+    "answer": 2,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để thêm ngôn ngữ bàn phím (chọn đáp án đúng nhất)?",
+    "options": [
+      "System > About",
+      "Time & Language > Date & time",
+      "System > Sound",
+      "Time & Language > Language"
+    ],
+    "answer": 3,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Khi nào nên dùng 'Eject' trước khi tháo thiết bị USB (chọn đáp án đúng nhất)?",
+    "options": [
+      "Không bao giờ cần.",
+      "Khi CPU quá nóng.",
+      "Khi thiết bị còn gắn và có thể đang được truy cập.",
+      "Chỉ khi pin yếu."
+    ],
+    "answer": 2,
+    "hint": "Ngắt kết nối an toàn tránh mất dữ liệu. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu đúng về ROM:",
+    "options": [
+      "Thường là bộ nhớ của card màn hình.",
+      "Chứa chương trình khởi động; không xoá khi tắt máy.",
+      "Dùng để lưu tạm ứng dụng đang chạy.",
+      "Là ổ cứng di động."
+    ],
+    "answer": 1,
+    "hint": "ROM là bộ nhớ chỉ đọc. (biến thể)"
+  },
+  {
+    "q": "Khi Minimize một cửa sổ: (chọn đáp án đúng)",
+    "options": [
+      "Cửa sổ phóng to.",
+      "Cửa sổ thu nhỏ xuống Taskbar nhưng chương trình vẫn chạy.",
+      "Máy tính tắt.",
+      "Chương trình bị đóng."
+    ],
+    "answer": 1,
+    "hint": "Khác với Close. (biến thể)"
+  },
+  {
+    "q": "Tổ hợp phím nào giúp chuyển đổi nhanh cửa sổ đang mở (chọn đáp án đúng nhất)?",
+    "options": [
+      "Ctrl + S.",
+      "Win + L.",
+      "Alt + Tab.",
+      "Shift + Esc."
+    ],
+    "answer": 2,
+    "hint": "Alt+Tab hiển thị bộ chọn. (biến thể)"
+  },
+  {
+    "q": "Thêm ngôn ngữ bàn phím cần thao tác: (chọn đáp án đúng)",
+    "options": [
+      "Device Manager > Keyboard.",
+      "Paint > Options.",
+      "Control Panel > Power Options.",
+      "Settings > Time & Language > Language > Add a keyboard."
+    ],
+    "answer": 3,
+    "hint": "Tùy chọn bàn phím trong Language. (biến thể)"
+  },
+  {
+    "q": "ICT là viết tắt của cụm từ nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "International Computer Technology.",
+      "Information and Communications Technology.",
+      "Integrated Computing Tools.",
+      "Internet and Cloud Technology."
+    ],
+    "answer": 1,
+    "hint": "ICT gồm công nghệ thông tin và công nghệ truyền thông. (biến thể)"
+  },
+  {
+    "q": "Phần cứng (hardware) là gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Dữ liệu người dùng.",
+      "Tài khoản đăng nhập hệ điều hành.",
+      "Các chương trình chạy trên máy tính.",
+      "Thành phần vật lý có thể nhìn, chạm được của máy tính."
+    ],
+    "answer": 3,
+    "hint": "Phần cứng gồm CPU, RAM, ổ cứng, thiết bị ngoại vi… (biến thể)"
+  },
+  {
+    "q": "Bộ xử lý trung tâm CPU có vai trò chính nào sau đây (chọn đáp án đúng nhất)?",
+    "options": [
+      "Cung cấp điện cho máy tính.",
+      "Lưu trữ lâu dài các tệp tin.",
+      "Thực hiện lệnh và điều khiển các thành phần khác.",
+      "Hiển thị hình ảnh lên màn hình."
+    ],
+    "answer": 2,
+    "hint": "CPU là 'bộ não' của máy tính. (biến thể)"
+  },
+  {
+    "q": "RAM khác ROM ở điểm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "RAM dùng cho lưu trữ lâu dài; ROM dùng cho tệp tạm.",
+      "RAM chỉ đọc; ROM đọc/ghi liên tục.",
+      "RAM nằm trên ổ cứng; ROM là bộ nhớ ngoài.",
+      "RAM lưu tạm dữ liệu và mất khi tắt máy; ROM chứa chương trình khởi động, không mất khi tắt."
+    ],
+    "answer": 3,
+    "hint": "RAM là bộ nhớ truy cập ngẫu nhiên; ROM chỉ đọc. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào sau đây là bộ nhớ lưu trữ rời dùng giao tiếp USB (chọn đáp án đúng nhất)?",
+    "options": [
+      "USB flash drive.",
+      "RAM.",
+      "CPU.",
+      "Bộ nguồn."
+    ],
+    "answer": 0,
+    "hint": "USB sử dụng bộ nhớ flash, dung lượng lớn, kích thước nhỏ. (biến thể)"
+  },
+  {
+    "q": "Ổ đĩa nào dùng tia laser để đọc/ghi dữ liệu (chọn đáp án đúng nhất)?",
+    "options": [
+      "CD/DVD.",
+      "Thẻ nhớ.",
+      "Ổ cứng HDD.",
+      "USB."
+    ],
+    "answer": 0,
+    "hint": "CD/DVD là đĩa quang. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu đúng về hiệu năng:",
+    "options": [
+      "ROM càng lớn thì phần mềm chạy càng nhanh.",
+      "Ổ cứng quyết định toàn bộ tốc độ tính toán.",
+      "Bỏ CPU, chỉ cần RAM lớn là đủ.",
+      "RAM nhiều giúp CPU ít phải chờ, xử lý nhanh hơn."
+    ],
+    "answer": 3,
+    "hint": "RAM thu thập dữ liệu đang xử lý để CPU truy cập nhanh. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào KHÔNG phải là thiết bị vào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Màn hình.",
+      "Máy quét (scanner).",
+      "Bàn phím.",
+      "Chuột."
+    ],
+    "answer": 0,
+    "hint": "Màn hình là thiết bị ra. (biến thể)"
+  },
+  {
+    "q": "Cổng nào truyền âm thanh/hình ảnh độ phân giải cao giữa máy tính và màn hình/TV (chọn đáp án đúng nhất)?",
+    "options": [
+      "HDMI.",
+      "Cổng mạng RJ-45.",
+      "USB.",
+      "FireWire."
+    ],
+    "answer": 0,
+    "hint": "HDMI dành cho đa phương tiện độ phân giải cao. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào là thiết bị kết hợp vừa là vào vừa là ra (chọn đáp án đúng nhất)?",
+    "options": [
+      "Máy in kim.",
+      "Màn hình cảm ứng.",
+      "Chuột quang.",
+      "Loa ngoài."
+    ],
+    "answer": 1,
+    "hint": "Màn hình cảm ứng nhận chạm (vào) và hiển thị (ra). (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào thường dùng để số hóa tài liệu giấy (chọn đáp án đúng nhất)?",
+    "options": [
+      "Chuột.",
+      "Webcam.",
+      "Scanner.",
+      "Loa."
+    ],
+    "answer": 2,
+    "hint": "Máy quét chuyển giấy thành dữ liệu số. (biến thể)"
+  },
+  {
+    "q": "Cổng mạng dùng để làm gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Kết nối loa.",
+      "Kết nối màn hình.",
+      "Kết nối máy tính với mạng LAN/Internet qua dây.",
+      "Kết nối bàn phím PS/2."
+    ],
+    "answer": 2,
+    "hint": "Cổng RJ‑45 cho Ethernet. (biến thể)"
+  },
+  {
+    "q": "Ổ cứng rời khác gì ổ cứng gắn trong (chọn đáp án đúng nhất)?",
+    "options": [
+      "Kết nối ngoài qua USB nhưng cùng chức năng lưu trữ.",
+      "Chỉ dùng cho điện thoại.",
+      "Không thể cắm vào PC.",
+      "Không lưu trữ được dữ liệu."
+    ],
+    "answer": 0,
+    "hint": "Ổ cứng rời di động, cắm USB. (biến thể)"
+  },
+  {
+    "q": "Thẻ nhớ thường dùng cho thiết bị nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Màn hình.",
+      "Nguồn ATX.",
+      "CPU.",
+      "Máy ảnh, điện thoại."
+    ],
+    "answer": 3,
+    "hint": "Thẻ nhớ là bộ nhớ mở rộng cho thiết bị cầm tay. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào phát âm thanh ra môi trường (chọn đáp án đúng nhất)?",
+    "options": [
+      "Loa.",
+      "Bàn phím.",
+      "Chuột.",
+      "Micro."
+    ],
+    "answer": 0,
+    "hint": "Loa là thiết bị ra âm thanh. (biến thể)"
+  },
+  {
+    "q": "Thiết bị nào ghi nhận âm thanh đưa vào máy tính (chọn đáp án đúng nhất)?",
+    "options": [
+      "Micro.",
+      "Máy in.",
+      "Màn hình.",
+      "Loa."
+    ],
+    "answer": 0,
+    "hint": "Micro là thiết bị vào âm thanh. (biến thể)"
+  },
+  {
+    "q": "Docking Station có mục đích chính gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Tăng dung lượng ROM.",
+      "Thay CPU.",
+      "Tăng RAM.",
+      "Mở rộng cổng kết nối cho laptop."
+    ],
+    "answer": 3,
+    "hint": "Docking giúp laptop như PC bàn. (biến thể)"
+  },
+  {
+    "q": "FireWire thường dùng để (chọn đáp án đúng nhất)?",
+    "options": [
+      "Sạc pin.",
+      "Xuất hình sang máy in.",
+      "Kết nối thiết bị thu video (chuẩn Apple).",
+      "Kết nối mạng LAN."
+    ],
+    "answer": 2,
+    "hint": "IEEE 1394 (FireWire) dùng cho video. (biến thể)"
+  },
+  {
+    "q": "All-in-one là loại máy tính như thế nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Chỉ dùng pin.",
+      "Không cần màn hình.",
+      "Không có ổ cứng.",
+      "Tích hợp thân máy vào màn hình."
+    ],
+    "answer": 3,
+    "hint": "AIO gọn gàng, tích hợp. (biến thể)"
+  },
+  {
+    "q": "Laptop khác Desktop ở điểm nào sau đây (chọn đáp án đúng nhất)?",
+    "options": [
+      "Không cài được hệ điều hành.",
+      "Cấu hình luôn mạnh hơn.",
+      "Không kết nối Internet được.",
+      "Di động, tích hợp màn hình/bàn phím/chuột, dùng pin."
+    ],
+    "answer": 3,
+    "hint": "Laptop tối ưu năng lượng, di động. (biến thể)"
+  },
+  {
+    "q": "Hệ điều hành (OS) là gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Phần mềm hệ thống quản lý phần cứng, tài nguyên và giao diện.",
+      "Ứng dụng văn phòng.",
+      "Thiết bị ngoại vi.",
+      "Trình duyệt web."
+    ],
+    "answer": 0,
+    "hint": "OS điều phối và cung cấp giao diện làm việc. (biến thể)"
+  },
+  {
+    "q": "Ví dụ hệ điều hành máy tính cá nhân: (chọn đáp án đúng)",
+    "options": [
+      "Chrome, Edge.",
+      "Photoshop, AutoCAD.",
+      "Windows, macOS, Linux.",
+      "Android, iOS."
+    ],
+    "answer": 2,
+    "hint": "Windows/macOS/Linux là OS cho PC. (biến thể)"
+  },
+  {
+    "q": "Ví dụ hệ điều hành di động: (chọn đáp án đúng)",
+    "options": [
+      "Android, iOS.",
+      "Word, Excel.",
+      "Windows, Linux.",
+      "Chrome, Edge."
+    ],
+    "answer": 0,
+    "hint": "Hệ điều hành cho smartphone. (biến thể)"
+  },
+  {
+    "q": "Gói ứng dụng văn phòng gồm: (chọn đáp án đúng)",
+    "options": [
+      "Xử lý văn bản, bảng tính, trình chiếu.",
+      "Trò chơi 3D.",
+      "Phần cứng máy tính.",
+      "Trình điều khiển (driver)."
+    ],
+    "answer": 0,
+    "hint": "Ví dụ: Microsoft Office. (biến thể)"
+  },
+  {
+    "q": "EULA là gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Mạng xã hội.",
+      "Thoả thuận cấp phép người dùng cuối.",
+      "Trình duyệt web.",
+      "Tập tin đa phương tiện."
+    ],
+    "answer": 1,
+    "hint": "Ràng buộc pháp lý khi dùng phần mềm. (biến thể)"
+  },
+  {
+    "q": "Phần mềm trả phí (proprietary) cho phép: (chọn đáp án đúng)",
+    "options": [
+      "Không cần giấy phép.",
+      "Sao chép vô hạn không điều kiện.",
+      "Sử dụng theo điều khoản, không tự do sửa/ phát hành.",
+      "Tự do sửa và phát hành."
+    ],
+    "answer": 2,
+    "hint": "Bị giới hạn bởi chủ sở hữu. (biến thể)"
+  },
+  {
+    "q": "Mã nguồn mở (open source) nghĩa là: (chọn đáp án đúng)",
+    "options": [
+      "Luôn miễn phí bản quyền âm nhạc.",
+      "Hoàn toàn không có bản quyền.",
+      "Được phép nghiên cứu/sửa đổi theo giấy phép mở.",
+      "Chỉ dành cho Windows."
+    ],
+    "answer": 2,
+    "hint": "GPL, MIT… cho phép sửa/ phân phối theo điều kiện. (biến thể)"
+  },
+  {
+    "q": "Shareware là: (chọn đáp án đúng)",
+    "options": [
+      "Trình điều khiển thiết bị.",
+      "Thiết bị phần cứng.",
+      "Phần mềm cho dùng thử rồi trả phí.",
+      "Phần mềm hệ thống."
+    ],
+    "answer": 2,
+    "hint": "Dùng thử 30–60 ngày… (biến thể)"
+  },
+  {
+    "q": "Freeware là: (chọn đáp án đúng)",
+    "options": [
+      "Dùng miễn phí, có thể sao chép phát hành theo điều khoản nhà cung cấp.",
+      "Chỉ dùng offline.",
+      "Không có bản quyền.",
+      "Bắt buộc trả phí hàng tháng."
+    ],
+    "answer": 0,
+    "hint": "Freeware miễn phí sử dụng. (biến thể)"
+  },
+  {
+    "q": "Adware có đặc điểm: (chọn đáp án đúng)",
+    "options": [
+      "Miễn phí nhưng kèm quảng cáo; có thể thu thập dữ liệu.",
+      "Chỉ chạy trên Linux.",
+      "Chỉ là thiết bị phần cứng.",
+      "Không cần Internet."
+    ],
+    "answer": 0,
+    "hint": "Quảng cáo là nguồn doanh thu. (biến thể)"
+  },
+  {
+    "q": "Để đăng nhập Windows 10, cần thao tác gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "Tắt nguồn rồi bật lại.",
+      "Nhấn Ctrl+Alt+Del hai lần.",
+      "Nhập đúng tài khoản và mật khẩu tại màn hình đăng nhập.",
+      "Cắm USB vào cổng trước."
+    ],
+    "answer": 2,
+    "hint": "Đảm bảo mật khẩu đủ mạnh. (biến thể)"
+  },
+  {
+    "q": "Sau khi đăng nhập, khu vực làm việc chính gọi là: (chọn đáp án đúng)",
+    "options": [
+      "Recycle Bin.",
+      "Desktop.",
+      "Control Panel.",
+      "BIOS."
+    ],
+    "answer": 1,
+    "hint": "Desktop là không gian thao tác. (biến thể)"
+  },
+  {
+    "q": "Start Menu dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Điều chỉnh độ sáng màn hình.",
+      "Chỉ hiển thị ảnh nền.",
+      "Thay thế ổ cứng.",
+      "Truy cập ứng dụng, cài đặt, tắt máy…"
+    ],
+    "answer": 3,
+    "hint": "Nút Windows ở góc trái Taskbar. (biến thể)"
+  },
+  {
+    "q": "Taskbar hiển thị: (chọn đáp án đúng)",
+    "options": [
+      "Biểu tượng ứng dụng đang mở và ghim; các khu vực hệ thống.",
+      "Chỉ cài đặt âm thanh.",
+      "Chỉ ngày giờ.",
+      "Chỉ Wi‑Fi."
+    ],
+    "answer": 0,
+    "hint": "Thanh dưới cùng mặc định. (biến thể)"
+  },
+  {
+    "q": "Biểu tượng Recycle Bin dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Gỡ chương trình.",
+      "Chứa tạm tệp đã xoá, có thể khôi phục.",
+      "Cài đặt âm thanh.",
+      "Tạo phím tắt."
+    ],
+    "answer": 1,
+    "hint": "Xoá vĩnh viễn khi empty bin. (biến thể)"
+  },
+  {
+    "q": "Biểu tượng có mũi tên nhỏ ở góc nghĩa là: (chọn đáp án đúng)",
+    "options": [
+      "Tệp ẩn.",
+      "Lối tắt (shortcut).",
+      "Tệp nén.",
+      "Tệp hệ thống."
+    ],
+    "answer": 1,
+    "hint": "Shortcut là đường dẫn đến tệp gốc. (biến thể)"
+  },
+  {
+    "q": "Tạo shortcut từ Desktop nhanh thế nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Nhấn Print Screen.",
+      "Nhấn F1.",
+      "Chuột phải > New > Shortcut hoặc Send to > Desktop.",
+      "Kéo vào Recycle Bin."
+    ],
+    "answer": 2,
+    "hint": "Menu chuột phải cung cấp lệnh. (biến thể)"
+  },
+  {
+    "q": "Xoá shortcut ảnh hưởng gì tới tệp gốc (chọn đáp án đúng nhất)?",
+    "options": [
+      "Không xoá tệp gốc.",
+      "Đổi tên thư mục hệ thống.",
+      "Khoá tài khoản.",
+      "Xoá luôn tệp gốc."
+    ],
+    "answer": 0,
+    "hint": "Chỉ là đường dẫn. (biến thể)"
+  },
+  {
+    "q": "Phóng to cực đại cửa sổ tương ứng với nút nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "Help.",
+      "Maximize.",
+      "Minimize.",
+      "Close."
+    ],
+    "answer": 1,
+    "hint": "Ba nút điều khiển ở góc phải. (biến thể)"
+  },
+  {
+    "q": "Tổ hợp phím để chuyển nhanh giữa cửa sổ đang mở: (chọn đáp án đúng)",
+    "options": [
+      "Alt + Tab.",
+      "Shift + Space.",
+      "Win + D chỉ thu nhỏ tất cả.",
+      "Ctrl + C."
+    ],
+    "answer": 0,
+    "hint": "Alt+Tab hiển thị bộ chọn cửa sổ. (biến thể)"
+  },
+  {
+    "q": "Thay hình nền Desktop tại đâu (chọn đáp án đúng nhất)?",
+    "options": [
+      "Task Manager > Startup.",
+      "Control Panel > Devices.",
+      "Settings > Personalization > Background.",
+      "This PC > System32."
+    ],
+    "answer": 2,
+    "hint": "Cá nhân hoá trong Personalization. (biến thể)"
+  },
+  {
+    "q": "Đổi ngày giờ trong Windows 10 tại đâu (chọn đáp án đúng nhất)?",
+    "options": [
+      "Control Panel > Devices.",
+      "Settings > Time & Language > Date & time.",
+      "File Explorer > View.",
+      "Microsoft Store."
+    ],
+    "answer": 1,
+    "hint": "Có thể tự động hoặc thủ công. (biến thể)"
+  },
+  {
+    "q": "Điều chỉnh âm lượng tổng: (chọn đáp án đúng)",
+    "options": [
+      "Start Menu > Power.",
+      "Recycle Bin.",
+      "BIOS.",
+      "Settings > System > Sound hoặc biểu tượng loa trên Taskbar."
+    ],
+    "answer": 3,
+    "hint": "Có thanh trượt âm lượng. (biến thể)"
+  },
+  {
+    "q": "Thêm ngôn ngữ bàn phím ở: (chọn đáp án đúng)",
+    "options": [
+      "Windows Defender.",
+      "Settings > Time & Language > Language > Add a keyboard.",
+      "Disk Management.",
+      "Device Manager."
+    ],
+    "answer": 1,
+    "hint": "Có thể chuyển bằng Alt+Shift. (biến thể)"
+  },
+  {
+    "q": "Xem thông tin RAM/phiên bản Windows tại: (chọn đáp án đúng)",
+    "options": [
+      "Windows Media Player.",
+      "Notepad.",
+      "Settings > System > About.",
+      "Paint."
+    ],
+    "answer": 2,
+    "hint": "Trang About hiển thị thông tin hệ thống. (biến thể)"
+  },
+  {
+    "q": "Chụp toàn màn hình nhanh: (chọn đáp án đúng)",
+    "options": [
+      "Shift + Tab.",
+      "Phím Print Screen (PrtScn).",
+      "Alt + F4.",
+      "Ctrl + A."
+    ],
+    "answer": 1,
+    "hint": "Ảnh lưu tạm vào clipboard. (biến thể)"
+  },
+  {
+    "q": "Đóng ứng dụng không phản hồi dùng: (chọn đáp án đúng)",
+    "options": [
+      "Windows Update.",
+      "Task Manager > End Task.",
+      "Device Manager > Disable.",
+      "Paint > Close."
+    ],
+    "answer": 1,
+    "hint": "Task Manager giám sát tiến trình. (biến thể)"
+  },
+  {
+    "q": "Kết nối thiết bị USB yêu cầu: (chọn đáp án đúng)",
+    "options": [
+      "Cắm vào cổng USB; Windows tự nhận driver nếu có.",
+      "Rút nguồn máy tính.",
+      "Phải tắt máy trước.",
+      "Chỉ cắm vào cổng HDMI."
+    ],
+    "answer": 0,
+    "hint": "Windows sẽ cài driver. (biến thể)"
+  },
+  {
+    "q": "Tháo USB an toàn bằng: (chọn đáp án đúng)",
+    "options": [
+      "Biểu tượng Safe to remove hardware trên Taskbar hoặc Eject trong This PC.",
+      "Nhổ ra ngay khi chép xong.",
+      "Tắt máy.",
+      "Xoá trong Recycle Bin."
+    ],
+    "answer": 0,
+    "hint": "Ngắt khi hệ thống báo an toàn. (biến thể)"
+  },
+  {
+    "q": "AutoPlay có tác dụng: (chọn đáp án đúng)",
+    "options": [
+      "Tăng tốc CPU.",
+      "Diệt virus tự động.",
+      "Tự động đề xuất hành động khi gắn thiết bị như CD/USB.",
+      "Tạo tài khoản mới."
+    ],
+    "answer": 2,
+    "hint": "Cửa sổ bật lên khi gắn thiết bị. (biến thể)"
+  },
+  {
+    "q": "Thanh địa chỉ (Address bar) hiển thị gì trong File Explorer (chọn đáp án đúng nhất)?",
+    "options": [
+      "Danh sách tiến trình.",
+      "Đường dẫn tới thư mục/tệp hiện tại.",
+      "Tài khoản người dùng.",
+      "Cấu hình mạng."
+    ],
+    "answer": 1,
+    "hint": "Cho biết vị trí hiện tại. (biến thể)"
+  },
+  {
+    "q": "Thanh cuộn xuất hiện khi: (chọn đáp án đúng)",
+    "options": [
+      "Không có mạng.",
+      "Ổ cứng đầy.",
+      "Nội dung dài vượt quá vùng hiển thị cửa sổ.",
+      "Máy hết pin."
+    ],
+    "answer": 2,
+    "hint": "Có thể kéo ngang/dọc. (biến thể)"
+  },
+  {
+    "q": "Ô tìm kiếm của File Explorer dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Tìm tệp/thư mục theo từ khóa trong thư mục hiện tại.",
+      "Tìm email.",
+      "Tìm thiết bị Bluetooth.",
+      "Tìm mật khẩu."
+    ],
+    "answer": 0,
+    "hint": "Search box góc phải. (biến thể)"
+  },
+  {
+    "q": "Navigation pane là: (chọn đáp án đúng)",
+    "options": [
+      "Vùng thông báo.",
+      "Thanh tác vụ.",
+      "Bảng điều hướng dạng cây để truy cập nhanh thư viện/thư mục.",
+      "Thùng rác."
+    ],
+    "answer": 2,
+    "hint": "Bên trái cửa sổ Explorer. (biến thể)"
+  },
+  {
+    "q": "Status bar hiển thị: (chọn đáp án đúng)",
+    "options": [
+      "Chế độ màn hình.",
+      "Cấp nguồn CPU.",
+      "Thông tin số mục, mục đang chọn…",
+      "Danh bạ email."
+    ],
+    "answer": 2,
+    "hint": "Dưới cùng cửa sổ. (biến thể)"
+  },
+  {
+    "q": "Mở tệp/thư mục trong Windows: (chọn đáp án đúng)",
+    "options": [
+      "Nhấp đúp chuột trái hoặc chọn và Enter.",
+      "Nhấn Ctrl+S.",
+      "Nhấn F1.",
+      "Kéo vào Recycle Bin."
+    ],
+    "answer": 0,
+    "hint": "Cách mở cơ bản. (biến thể)"
+  },
+  {
+    "q": "Di chuyển cửa sổ: (chọn đáp án đúng)",
+    "options": [
+      "Nhấn Esc.",
+      "Giữ chuột ở Status bar.",
+      "Nhấn Alt+F4.",
+      "Giữ chuột trên thanh tiêu đề và kéo."
+    ],
+    "answer": 3,
+    "hint": "Thanh tiêu đề cho phép kéo. (biến thể)"
+  },
+  {
+    "q": "Thay đổi kích thước cửa sổ bằng kéo chuột ở đâu (chọn đáp án đúng nhất)?",
+    "options": [
+      "Giữa màn hình.",
+      "Các cạnh/góc cửa sổ.",
+      "Trong Recycle Bin.",
+      "Trên Taskbar."
+    ],
+    "answer": 1,
+    "hint": "Con trỏ thành mũi tên hai đầu. (biến thể)"
+  },
+  {
+    "q": "Nút Minimize có tác dụng: (chọn đáp án đúng)",
+    "options": [
+      "Thu nhỏ cửa sổ xuống Taskbar, ứng dụng vẫn chạy.",
+      "Chuyển người dùng.",
+      "Đóng hẳn ứng dụng.",
+      "Mở Task Manager."
+    ],
+    "answer": 0,
+    "hint": "Thu nhỏ để dọn màn hình. (biến thể)"
+  },
+  {
+    "q": "Close (X) sẽ: (chọn đáp án đúng)",
+    "options": [
+      "Thu nhỏ xuống Taskbar.",
+      "Đóng cửa sổ và kết thúc chương trình đang chạy.",
+      "Khóa máy.",
+      "Phóng to."
+    ],
+    "answer": 1,
+    "hint": "Đóng hẳn tiến trình ứng dụng. (biến thể)"
+  },
+  {
+    "q": "Mạng xã hội dùng để: (chọn đáp án đúng)",
+    "options": [
+      "Kết nối, chia sẻ nội dung/hoạt động giữa cá nhân qua Internet.",
+      "Lắp đặt CPU.",
+      "Cấp phép phần mềm.",
+      "Lưu trữ phần cứng."
+    ],
+    "answer": 0,
+    "hint": "Ví dụ: Facebook. (biến thể)"
+  },
+  {
+    "q": "Ứng dụng giao tiếp gồm: (chọn đáp án đúng)",
+    "options": [
+      "Disk Cleanup.",
+      "Email, nhắn tin, thoại/video (Outlook, Gmail, Skype).",
+      "File Explorer, Paint.",
+      "Device Manager."
+    ],
+    "answer": 1,
+    "hint": "Trao đổi thông tin/tệp. (biến thể)"
+  },
+  {
+    "q": "Truyền thông đa phương tiện quản lý gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "BIOS.",
+      "Dữ liệu cảm biến CPU.",
+      "Quyền truy cập thợ sửa.",
+      "Âm nhạc, video, hình ảnh, trình chiếu…"
+    ],
+    "answer": 3,
+    "hint": "Ví dụ iTunes. (biến thể)"
+  },
+  {
+    "q": "Cửa hàng ứng dụng di động là: (chọn đáp án đúng)",
+    "options": [
+      "Phần cứng CPU.",
+      "Hệ điều hành máy tính.",
+      "Thiết bị mạng.",
+      "Nền tảng tải app cho thiết bị (App Store, Google Play)."
+    ],
+    "answer": 3,
+    "hint": "Ứng dụng di động được phân phối tại đây. (biến thể)"
+  },
+  {
+    "q": "Phần mềm hỗ trợ tiếp cận (accessibility) mục tiêu: (chọn đáp án đúng)",
+    "options": [
+      "Giảm ping chơi game.",
+      "Mua bản quyền nhạc.",
+      "Giúp mọi người, đặc biệt người khuyết tật, sử dụng CNTT.",
+      "Tăng dung lượng ổ cứng."
+    ],
+    "answer": 2,
+    "hint": "Ví dụ đọc màn hình, nhận diện giọng nói. (biến thể)"
+  },
+  {
+    "q": "Khi tải phần mềm từ Internet, điều nên làm: (chọn đáp án đúng)",
+    "options": [
+      "Tắt tường lửa.",
+      "Gỡ driver.",
+      "Tắt trình duyệt.",
+      "Chỉ tải từ nguồn tin cậy; quét virus trước khi cài."
+    ],
+    "answer": 3,
+    "hint": "An toàn là ưu tiên. (biến thể)"
+  },
+  {
+    "q": "Điểm khác nhau cơ bản giữa IT và CT trong ICT: (chọn đáp án đúng)",
+    "options": [
+      "IT lưu trữ/xử lý thông tin; CT hỗ trợ truyền thông, in ấn, kết nối.",
+      "IT là Internet; CT là Cloud.",
+      "Không có khác biệt.",
+      "IT là phần cứng; CT là phần mềm."
+    ],
+    "answer": 0,
+    "hint": "Hai mảng hợp thành ICT. (biến thể)"
+  },
+  {
+    "q": "Ví dụ về dịch vụ ICT trong đời sống: (chọn đáp án đúng)",
+    "options": [
+      "Dùng máy ảnh phim.",
+      "Lướt web, gọi điện, GPS, chơi game trực tuyến.",
+      "Chỉ in ấn giấy tờ.",
+      "Quản lý nhiệt độ CPU."
+    ],
+    "answer": 1,
+    "hint": "Nêu trong sách phần 1.1. (biến thể)"
+  },
+  {
+    "q": "Một lợi ích của ICT đối với tổ chức: (chọn đáp án đúng)",
+    "options": [
+      "Thay thế hoàn toàn con người.",
+      "Tối ưu quy trình, quan hệ khách hàng và nhà cung cấp.",
+      "Loại bỏ nhu cầu bảo mật.",
+      "Loại bỏ đào tạo."
+    ],
+    "answer": 1,
+    "hint": "Giúp nâng cao chất lượng dữ liệu/thông tin. (biến thể)"
+  },
+  {
+    "q": "Ví dụ ứng dụng thiết kế: (chọn đáp án đúng)",
+    "options": [
+      "Excel, Word.",
+      "Device Manager, DiskPart.",
+      "Notepad, Paint 3D.",
+      "AutoCAD, Photoshop."
+    ],
+    "answer": 3,
+    "hint": "Tạo lập đồ hoạ/bản vẽ kỹ thuật. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phương án SAI:",
+    "options": [
+      "CPU là bộ não xử lý lệnh.",
+      "ROM chứa chương trình khởi động, không xoá khi tắt máy.",
+      "Recycle Bin là nơi tăng hiệu năng CPU.",
+      "RAM lưu tạm và mất dữ liệu khi tắt máy."
+    ],
+    "answer": 2,
+    "hint": "Recycle Bin không liên quan CPU. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu ĐÚNG:",
+    "options": [
+      "Shortcut là tệp cài đặt chương trình.",
+      "Shortcut không thể đổi tên.",
+      "Xóa shortcut sẽ xóa luôn tệp gốc.",
+      "Shortcut xóa đi không làm mất tệp gốc."
+    ],
+    "answer": 3,
+    "hint": "Shortcut chỉ là đường dẫn. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu SAI về Taskbar:",
+    "options": [
+      "Chỉ hiển thị ngày giờ, không hiển thị ứng dụng đang mở.",
+      "Có vùng thông báo hệ thống.",
+      "Có thể ghim ứng dụng thường dùng.",
+      "Hiển thị biểu tượng chương trình đang chạy."
+    ],
+    "answer": 0,
+    "hint": "Taskbar hiển thị app đang mở. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu ĐÚNG về HDMI:",
+    "options": [
+      "Chỉ sạc pin.",
+      "Dùng truyền âm thanh/hình ảnh độ phân giải cao.",
+      "Thay thế hoàn toàn USB.",
+      "Chỉ truyền dữ liệu bàn phím."
+    ],
+    "answer": 1,
+    "hint": "Chuẩn đa phương tiện số. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu SAI về AutoPlay:",
+    "options": [
+      "Xuất hiện khi cắm CD/USB.",
+      "Luôn luôn cài đặt phần mềm tự động mà không cần hỏi.",
+      "Đề xuất hành động khi gắn thiết bị.",
+      "Có thể tắt/bật trong cài đặt."
+    ],
+    "answer": 1,
+    "hint": "Không tự ý cài đặt. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Bàn phím thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị ra",
+      "không phải thiết bị ngoại vi",
+      "thiết bị vào",
+      "vừa vào vừa ra"
+    ],
+    "answer": 2,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Chuột thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "không phải thiết bị ngoại vi",
+      "thiết bị vào",
+      "vừa vào vừa ra",
+      "thiết bị ra"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Máy quét thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra",
+      "thiết bị ra"
+    ],
+    "answer": 0,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Loa thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "vừa vào vừa ra",
+      "thiết bị ra",
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Màn hình thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị vào",
+      "thiết bị ra",
+      "vừa vào vừa ra",
+      "không phải thiết bị ngoại vi"
+    ],
+    "answer": 1,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Webcam thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "vừa vào vừa ra",
+      "thiết bị ra",
+      "không phải thiết bị ngoại vi",
+      "thiết bị vào"
+    ],
+    "answer": 3,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Micro thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra",
+      "thiết bị ra",
+      "thiết bị vào"
+    ],
+    "answer": 3,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Máy in thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "vừa vào vừa ra",
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi",
+      "thiết bị ra"
+    ],
+    "answer": 3,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Thiết bị Màn hình cảm ứng thuộc nhóm nào (chọn đáp án đúng nhất)?",
+    "options": [
+      "thiết bị ra",
+      "thiết bị vào",
+      "không phải thiết bị ngoại vi",
+      "vừa vào vừa ra"
+    ],
+    "answer": 3,
+    "hint": "Phân loại theo hướng dữ liệu vào/ra. (biến thể)"
+  },
+  {
+    "q": "Cổng USB thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối thiết bị video kỹ thuật số",
+      "kết nối mạng LAN/Internet"
+    ],
+    "answer": 0,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Cổng HDMI thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 0,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Cổng RJ-45 thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "kết nối thiết bị video kỹ thuật số",
+      "kết nối mạng LAN/Internet"
+    ],
+    "answer": 3,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Cổng FireWire thường dùng cho mục đích gì (chọn đáp án đúng nhất)?",
+    "options": [
+      "kết nối nhanh nhiều thiết bị ngoại vi",
+      "truyền âm thanh/hình ảnh chất lượng cao",
+      "kết nối mạng LAN/Internet",
+      "kết nối thiết bị video kỹ thuật số"
+    ],
+    "answer": 3,
+    "hint": "Nhớ đặc trưng từng cổng. (biến thể)"
+  },
+  {
+    "q": "Hệ điều hành nào sau đây thuộc nhóm máy tính cá nhân (chọn đáp án đúng nhất)?",
+    "options": [
+      "Windows, macOS, Linux",
+      "iOS",
+      "Android",
+      "macOS"
+    ],
+    "answer": 0,
+    "hint": "Phân biệt OS cho PC và di động. (biến thể)"
+  },
+  {
+    "q": "Hệ điều hành nào sau đây thuộc nhóm di động (chọn đáp án đúng nhất)?",
+    "options": [
+      "macOS",
+      "Android",
+      "iOS",
+      "Android, iOS"
+    ],
+    "answer": 3,
+    "hint": "Phân biệt OS cho PC và di động. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để đổi hình nền Desktop (chọn đáp án đúng nhất)?",
+    "options": [
+      "Time & Language > Date & time",
+      "Personalization > Background",
+      "System > Sound",
+      "System > About"
+    ],
+    "answer": 1,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để đổi ngày giờ (chọn đáp án đúng nhất)?",
+    "options": [
+      "Personalization > Background",
+      "Time & Language > Date & time",
+      "System > Sound",
+      "System > About"
+    ],
+    "answer": 1,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để xem thông tin hệ thống (chọn đáp án đúng nhất)?",
+    "options": [
+      "Time & Language > Date & time",
+      "Personalization > Background",
+      "System > Sound",
+      "System > About"
+    ],
+    "answer": 3,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để điều chỉnh âm lượng (chọn đáp án đúng nhất)?",
+    "options": [
+      "System > About",
+      "Time & Language > Date & time",
+      "System > Sound",
+      "Personalization > Background"
+    ],
+    "answer": 2,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Trong Settings của Windows 10, khu vực nào để thêm ngôn ngữ bàn phím (chọn đáp án đúng nhất)?",
+    "options": [
+      "Time & Language > Date & time",
+      "System > Sound",
+      "Time & Language > Language",
+      "System > About"
+    ],
+    "answer": 2,
+    "hint": "Nhớ vị trí các mục cài đặt thường dùng. (biến thể)"
+  },
+  {
+    "q": "Khi nào nên dùng 'Eject' trước khi tháo thiết bị USB (chọn đáp án đúng nhất)?",
+    "options": [
+      "Khi CPU quá nóng.",
+      "Khi thiết bị còn gắn và có thể đang được truy cập.",
+      "Không bao giờ cần.",
+      "Chỉ khi pin yếu."
+    ],
+    "answer": 1,
+    "hint": "Ngắt kết nối an toàn tránh mất dữ liệu. (biến thể)"
+  },
+  {
+    "q": "Hãy chọn phát biểu đúng về ROM:",
+    "options": [
+      "Là ổ cứng di động.",
+      "Chứa chương trình khởi động; không xoá khi tắt máy.",
+      "Dùng để lưu tạm ứng dụng đang chạy.",
+      "Thường là bộ nhớ của card màn hình."
+    ],
+    "answer": 1,
+    "hint": "ROM là bộ nhớ chỉ đọc. (biến thể)"
+  },
+  {
+    "q": "Khi Minimize một cửa sổ: (chọn đáp án đúng)",
+    "options": [
+      "Cửa sổ thu nhỏ xuống Taskbar nhưng chương trình vẫn chạy.",
+      "Máy tính tắt.",
+      "Cửa sổ phóng to.",
+      "Chương trình bị đóng."
+    ],
+    "answer": 0,
+    "hint": "Khác với Close. (biến thể)"
+  },
+  {
+    "q": "Tổ hợp phím nào giúp chuyển đổi nhanh cửa sổ đang mở (chọn đáp án đúng nhất)?",
+    "options": [
+      "Alt + Tab.",
+      "Shift + Esc.",
+      "Win + L.",
+      "Ctrl + S."
+    ],
+    "answer": 0,
+    "hint": "Alt+Tab hiển thị bộ chọn. (biến thể)"
+  },
+  {
+    "q": "Thêm ngôn ngữ bàn phím cần thao tác: (chọn đáp án đúng)",
+    "options": [
+      "Device Manager > Keyboard.",
+      "Control Panel > Power Options.",
+      "Settings > Time & Language > Language > Add a keyboard.",
+      "Paint > Options."
+    ],
+    "answer": 2,
+    "hint": "Tùy chọn bàn phím trong Language. (biến thể)"
+  }
+];
+
+
+// Biến toàn cục để theo dõi điểm số
+let score = 0;
+let answered = 0;
+let totalQuestions = quizData.length;
+let wrong = 0;
+const userAnswers = {}; 
+
+/**
+ * Hàm này KHÔNG còn sử dụng localStorage.
+ * Nó chỉ vô hiệu hóa ô nhập liệu ngay sau khi người dùng nhập dữ liệu (onblur).
+ * Dữ liệu sẽ bị xóa khi tải lại trang.
+ */
+function lockInput(inputElement) {
+    const value = inputElement.value.trim();
+    
+    // Nếu giá trị đã được nhập (không rỗng)
+    if (value !== "") {
+        // Vô hiệu hóa ô nhập liệu để ngăn chỉnh sửa giữa chừng
+        inputElement.disabled = true;
+    }
+}
+
+/**
+ * Hàm này KHÔNG còn tải thông tin từ localStorage.
+ * Nó chỉ được giữ lại để kiểm tra và khóa các trường hợp bất thường (ví dụ: nhập và không blur).
+ */
+function loadStudentInfo() {
+    const nameInput = document.getElementById('student-name');
+    const idInput = document.getElementById('student-id');
+    
+    // Nếu trang vừa tải và có giá trị (trường hợp hiếm), thì khóa nó
+    if (nameInput.value.trim() !== "") {
+        nameInput.disabled = true;
+    }
+    
+    if (idInput.value.trim() !== "") {
+        idInput.disabled = true;
+    }
+    // Khi tải lại trang, cả hai trường sẽ là rỗng và kích hoạt (enabled)
+}
+
+function updateScoreBoard() {
+    const answeredInputs = document.querySelectorAll('#quiz input[type="radio"]:checked');
+    answered = answeredInputs.length;
+    
+    // Tính lại điểm
+    let currentScore = 0;
+    const questions = document.querySelectorAll('.q');
+    questions.forEach((q, qIndex) => {
+        const selectedRadio = q.querySelector('input[type="radio"]:checked');
+        if (selectedRadio) {
+            const chosenIndexInShuffled = parseInt(selectedRadio.value);
+            const shuffledOptions = JSON.parse(q.dataset.shuffledOptions);
+            const originalIndex = shuffledOptions[chosenIndexInShuffled].originalIndex;
+            const originalCorrectAnswerIndex = quizData[qIndex].answer;
+            
+            if (originalIndex === originalCorrectAnswerIndex) {
+                currentScore++;
+            }
+        }
+    });
+
+    score = currentScore;
+    wrong = answered - score; 
+    const percentage = answered > 0 ? ((score / answered) * 100).toFixed(1) : 0;
+
+    document.getElementById('answered-questions').textContent = answered;
+    document.getElementById('correct-answers').textContent = score;
+    document.getElementById('wrong-answers-value').textContent = wrong; 
+    document.getElementById('percentage-value').textContent = `${percentage}%`;
+    document.getElementById('total-questions').textContent = totalQuestions;
+}
+
+function shuffle(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]
+    ];
+  }
+  return array;
+}
+
+function renderQuiz() {
+  const container = document.getElementById('quiz');
+  container.innerHTML = ''; 
+
+  // Tải thông tin học sinh và khóa input nếu đã nhập (loadStudentInfo KHÔNG dùng localStorage)
+  loadStudentInfo();
+  updateScoreBoard(); 
+
+  quizData.forEach((item, i) => {
+    const q = document.createElement('div');
+    q.className = 'q';
+    q.innerHTML = `<h3>${i+1}. ${item.q}</h3>`;
+    
+    // Create a new shuffled array for options
+    const shuffledOptions = item.options.map((text, idx) => ({ text, originalIndex: idx }));
+    shuffle(shuffledOptions);
+    
+    // Lưu lại thông tin hoán đổi vào dataset của câu hỏi
+    q.dataset.shuffledOptions = JSON.stringify(shuffledOptions);
+
+    const ansBox = document.createElement('div');
+    ansBox.className = 'ans';
+    q.appendChild(ansBox);
+    
+    const originalCorrectAnswerText = item.options[item.answer];
+
+    shuffledOptions.forEach((opt, idx) => {
+      const label = document.createElement('label');
+      label.className = 'opt';
+      
+      label.innerHTML = `<input type="radio" name="q${i}" value="${idx}"> ${'ABCD'[idx]}. ${opt.text}`;
+      
+      label.querySelector('input').addEventListener('change', (e) => {
+        // Vô hiệu hóa tất cả các nút radio cho câu hỏi này
+        q.querySelectorAll('input[type="radio"]').forEach(radio => radio.disabled = true);
+        
+        const chosenIndexInShuffled = parseInt(e.target.value);
+        const originalIndex = shuffledOptions[chosenIndexInShuffled].originalIndex;
+        const originalCorrectAnswerIndex = item.answer;
+        const isCorrect = (originalIndex === originalCorrectAnswerIndex);
+        
+        // Cập nhật bảng điểm sau mỗi lần trả lời
+        updateScoreBoard(); 
+
+        // Hiển thị kết quả
+        if (isCorrect) {
+          ansBox.className = 'ans correct';
+          ansBox.innerHTML = `
+            <span class="pill" style="background-color:#ccffcc; color:#004d1a;">ĐÚNG!</span>
+            <span class="small" style="font-weight:normal; color:#004d1a;">Đáp án: ${'ABCD'[shuffledOptions.findIndex(o => o.originalIndex === originalCorrectAnswerIndex)]}. ${originalCorrectAnswerText}</span>
+          `;
+        } else {
+          ansBox.className = 'ans wrong';
+          ansBox.innerHTML = `
+            <span class="pill" style="background-color:#ff9999; color:#800000;">SAI.</span>
+            <span class="small" style="font-weight:normal; color:#800000;">Đáp án đúng: ${'ABCD'[shuffledOptions.findIndex(o => o.originalIndex === originalCorrectAnswerIndex)]}. ${originalCorrectAnswerText}</span>
+            <span class="small" style="font-weight:normal; margin-top: 4px; color: #555;">Gợi ý: ${item.hint}</span>
+          `;
+        }
+        ansBox.style.display = 'block';
+      });
+      q.appendChild(label);
+    });
+
+    container.appendChild(q);
+  });
+}
+
+function resetQuiz() {
+    if (!confirm('Bạn có chắc chắn muốn làm lại bài kiểm tra? Tất cả kết quả hiện tại sẽ bị xóa.')) {
+        return;
+    }
+    
+    // Reset biến điểm
+    score = 0;
+    answered = 0;
+    wrong = 0;
+    
+    // Xóa các lựa chọn cũ
+    const radios = document.querySelectorAll('#quiz input[type="radio"]');
+    radios.forEach(radio => {
+        radio.checked = false;
+        radio.disabled = false;
+    });
+
+    // Ẩn các hộp đáp án
+    const ansBoxes = document.querySelectorAll('.ans');
+    ansBoxes.forEach(box => {
+        box.style.display = 'none';
+    });
+
+    // Reset thông tin học sinh (Giữ nguyên tên/mã số nếu đã nhập, KHÔNG yêu cầu nhập lại)
+    
+    // Render lại quiz để hoán đổi đáp án
+    renderQuiz(); 
+}
+
+// Bắt đầu tạo bài kiểm tra khi trang tải xong
+window.onload = renderQuiz;
+</script>
+</body>
+</html>
